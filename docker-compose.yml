@@ -12,7 +12,7 @@ services:
     depends_on:
       - php
       - mysql
-      - npmnx
+#      - npmnx
     ports:
       - 80:80
       - 443:443
@@ -102,39 +102,39 @@ services:
 #      - MYSQL_USER_FILE=/run/secrets/db_username
 #      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
 #      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
-
-  npmnx:
-    build:
-      context: .
-      dockerfile: node.dockerfile
-    container_name: npmnx
-    ports:
-      - 3000:3000
-    working_dir: /var/www/html/fe
-    networks:
-      - magicport
-
-  npm:
-    image: node:current-alpine
-    container_name: npm
-    ports:
-      - 5173:3000
-    volumes:
-      - ./src/fe:/var/www/html/fe
-    working_dir: /var/www/html/fe
-    entrypoint: ["npm"]
-    networks:
-      - magicport
-
-  npx:
-    image: node:current-alpine
-    container_name: npx
-    volumes:
-      - ./src/fe:/var/www/html/fe
-    working_dir: /var/www/html/fe
-    entrypoint: ["npx"]
-    networks:
-      - magicport
+#
+#  npmnx:
+#    build:
+#      context: .
+#      dockerfile: node.dockerfile
+#    container_name: npmnx
+#    ports:
+#      - 3000:3000
+#    working_dir: /var/www/html/fe
+#    networks:
+#      - magicport
+#
+#  npm:
+#    image: node:current-alpine
+#    container_name: npm
+#    ports:
+#      - 5173:3000
+#    volumes:
+#      - ./src/fe:/var/www/html/fe
+#    working_dir: /var/www/html/fe
+#    entrypoint: ["npm"]
+#    networks:
+#      - magicport
+#
+#  npx:
+#    image: node:current-alpine
+#    container_name: npx
+#    volumes:
+#      - ./src/fe:/var/www/html/fe
+#    working_dir: /var/www/html/fe
+#    entrypoint: ["npx"]
+#    networks:
+#      - magicport
 
 #  redis:
 #    image: redis:alpine

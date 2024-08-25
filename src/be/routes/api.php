@@ -1,23 +1,20 @@
 <?php
 
-use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route ;
-use Illuminate\Http\Request;
-use App\Models\User;
 
-Route::get('/users', function (Request $request) {
-    return $request->user();
-})->middleware(Authenticate::using('sanctum'));
 
+Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\V1'], function () {
+    Route::apiResource('companies', 'Company\CompanyController');
+});
 
 
 
 Route::fallback(function () {
     if (request()->wantsJson()) {
         return response()->json([
-            'error' => 'Resource not found.',
+            'error' => 'Resources not found.',
             'message' => 'The resource you are looking for could not be found.'
         ], 404);
     }

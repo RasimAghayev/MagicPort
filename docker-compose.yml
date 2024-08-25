@@ -79,7 +79,7 @@ services:
       - magicport
 
   mysql:
-    image: mysql:8.4.2
+    image: mysql:9.0.1
     container_name: mysql
     ports:
       - 4306:3306

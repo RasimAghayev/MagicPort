@@ -23,7 +23,7 @@ FROM base AS deps
 RUN --mount=type=cache,target=/root/.composer/cache \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 COPY src/be/composer.json src/be/composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
 
 FROM deps AS build
 COPY src/be/ .

@@ -1,0 +1,11 @@
+paths:
+    - app/**/*.php
+    - config/**/*.php
+    - database/**/*.php
+    - routes/**/*.php
+    - tests/**/*.php
+
+exclude-paths:
+    - vendor/*
+
+level: 5

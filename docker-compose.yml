@@ -1,4 +1,5 @@
 name: "magicport"
+
 networks:
   magicport:
     name: magicport
@@ -8,14 +9,13 @@ services:
     build:
       context: .
       dockerfile: nginx.dockerfile
+      target: runtime
     container_name: nginx
     depends_on:
-      - php
-      - mysql
-#      - npmnx
+      php:
+        condition: service_healthy
     ports:
-      - 80:80
-      - 443:443
+      - "80:80"
     volumes:
       - ./src/be:/var/www/html/be:delegated
     networks:
@@ -25,28 +25,15 @@ services:
     build:
       context: .
       dockerfile: php.dockerfile
+      target: runtime
     container_name: php
     volumes:
       - ./src/be:/var/www/html/be:delegated
-#    secrets:
-#      - db_connection
-#      - db_host
-#      - db_port
-#      - db_database
-#      - db_username
-#      - db_password
-#    environment:
-#      - DB_CONNECTION_FILE=/run/secrets/db_connection
-#      - DB_HOST_FILE=/run/secrets/db_host
-#      - DB_PORT_FILE=/run/secrets/db_port
-#      - DB_DATABASE_FILE=/run/secrets/db_database
-#      - DB_USERNAME_FILE=/run/secrets/db_username
-#      - DB_PASSWORD_FILE=/run/secrets/db_password
     networks:
       - magicport
 
   composer:
-    image: composer:latest
+    image: composer:2.8
     container_name: composer
     volumes:
       - ./src/be:/var/www/html/be
@@ -58,6 +45,7 @@ services:
     build:
       context: .
       dockerfile: php.dockerfile
+      target: runtime
     container_name: artisan
     volumes:
       - ./src/be:/var/www/html/be
@@ -70,6 +58,7 @@ services:
     build:
       context: .
       dockerfile: php.dockerfile
+      target: test
     container_name: phpunit
     volumes:
       - ./src/be:/var/www/html/be
@@ -82,7 +71,7 @@ services:
     image: mysql:26.7.0
     container_name: mysql
     ports:
-      - 4306:3306
+      - "4306:3306"
     volumes:
       - ./db/mysql:/var/lib/mysql
     networks:
@@ -92,73 +81,10 @@ services:
       - MYSQL_USER=magicport
       - MYSQL_PASSWORD=magicport
       - MYSQL_ROOT_PASSWORD=magicport
-#    secrets:
-#      - db_database
-#      - db_username
-#      - db_password
-#      - db_root_password
-#    environment:
-#      - MYSQL_DATABASE_FILE=/run/secrets/db_database
-#      - MYSQL_USER_FILE=/run/secrets/db_username
-#      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
-#      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
-#
-#  npmnx:
-#    build:
-#      context: .
-#      dockerfile: node.dockerfile
-#    container_name: npmnx
-#    ports:
-#      - 3000:3000
-#    working_dir: /var/www/html/fe
-#    networks:
-#      - magicport
-#
-#  npm:
-#    image: node:current-alpine
-#    container_name: npm
-#    ports:
-#      - 5173:3000
-#    volumes:
-#      - ./src/fe:/var/www/html/fe
-#    working_dir: /var/www/html/fe
-#    entrypoint: ["npm"]
-#    networks:
-#      - magicport
-#
-#  npx:
-#    image: node:current-alpine
-#    container_name: npx
-#    volumes:
-#      - ./src/fe:/var/www/html/fe
-#    working_dir: /var/www/html/fe
-#    entrypoint: ["npx"]
-#    networks:
-#      - magicport
-
-#  redis:
-#    image: redis:alpine
-#    container_name: redis
-#    command: redis-server --save 20 1 --loglevel warning
-#    ports:
-#      - "8002:6379"
-#    volumes:
-#      - ./db/redis:/data
-
-#secrets:
-#  db_connection:
-#    file: ./secrets/db_connection
-#  db_host:
-#    file: ./secrets/db_host
-#  db_port:
-#    file: ./secrets/db_port
-#  db_database:
-#    file: ./secrets/db_database
-#  db_username:
-#    file: ./secrets/db_username
-#  db_password:
-#    file: ./secrets/db_password
-#  db_root_password:
-#    file: ./secrets/db_root_password
-#  app_key:
-#    file: ./secrets/app_key
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - magicport

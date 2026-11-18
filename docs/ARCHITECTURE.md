@@ -2,68 +2,98 @@
 
 ## Overview
 
-MagicPort is a vanilla Laravel skeleton application. It provides a baseline Laravel installation with Docker Compose orchestration, awaiting business-domain implementation.
+MagicPort is a Laravel 11 API application providing CRUD over a Company/Project/Task/User domain. The backend (`src/be/`) exposes a versioned REST API (`/api/v1/*`) with repository/service abstraction for the Company module and direct Eloquent for simpler CRUD modules (Project, Task, User).
 
 ## Directory structure
 
 ```
 MagicPort/
-├── docker-compose.yml          # Multi-service orchestration (nginx, php, mysql, composer, artisan, phpunit)
-├── php.dockerfile              # PHP 8.5-FPM base image with Laravel extensions
-├── nginx.dockerfile            # nginx stable-alpine with default site config
-├── server/nginx/               # nginx site configuration
-├── scripts/load-secrets.sh     # Secret-loading entrypoint stub (not wired)
-├── secrets/                    # Plaintext DB credentials (7 files) — COMPROMISED, see Phase 9
+├── php.dockerfile              # PHP 8.3-FPM base image with Laravel extensions
+├── nginx.dockerfile            # nginx with default site config
+├── docker-compose.yml          # Multi-service orchestration
+├── Makefile                    # build/test/verify/up/down targets
+├── .github/workflows/ci.yml    # GitHub Actions CI pipeline
 ├── src/be/                     # Laravel backend application
 │   ├── app/
-│   │   ├── Http/Controllers/Controller.php
-│   │   ├── Models/User.php
-│   │   └── Providers/AppServiceProvider.php
-│   ├── bootstrap/
-│   ├── config/                 # Laravel config files (app, auth, database, etc.)
-│   ├── database/
-│   │   ├── factories/UserFactory.php
-│   │   ├── migrations/         # 3 default Laravel migrations
-│   │   └── seeders/DatabaseSeeder.php
-│   ├── public/
-│   ├── resources/
-│   │   ├── css/, js/, views/   # Vite-managed assets + welcome blade view
-│   ├── routes/
-│   │   ├── web.php             # Single GET / route → welcome view
-│   │   └── console.php         # Default inspire Artisan command
-│   ├── tests/
-│   │   ├── Feature/ExampleTest.php
-│   │   └── Unit/ExampleTest.php
-│   ├── composer.json / composer.lock   # PHP dependencies (manifest/lock MISMATCH — see Phase 2)
-│   ├── package.json            # npm dev deps (no lockfile committed)
-│   ├── vite.config.js
-│   └── phpunit.xml
-└── src/fe/                     # Empty — frontend placeholder, no implementation
+│   │   ├── Classes/ApiResponseClass.php   # Standardized JSON responses
+│   │   ├── Enums/                         # DefaultStatus, UserStatus, TaskStatus
+│   │   ├── Filters/ApiFilter.php          # Base query filter
+│   │   ├── Filters/V1/                    # TaskFilters, ProjectFilters
+│   │   ├── Http/
+│   │   │   ├── Controllers/
+│   │   │   │   ├── V1/
+│   │   │   │   │   ├── CompanyController.php
+│   │   │   │   │   ├── ProjectController.php
+│   │   │   │   │   ├── TaskController.php
+│   │   │   │   │   ├── UserController.php
+│   │   │   │   │   └── Company/                 # Company submodule
+│   │   │   │   │   │       ├── Service/         # CompanyService + interface
+│   │   │   │   │   │       ├── Repository/      # CompanyRepository + interface
+│   │   │   │   │   │       ├── Filter/          # CompanyFilters
+│   │   │   │   │   │       ├── Requests/        # Store/UpdateCompanyRequest
+│   │   │   │   │   │       ├── Resources/       # Company*Resource + Collection
+│   │   │   │   │   │       └── DTO/             # CompanyDTO
+│   │   │   │   │   ├── Project/                 # ProjectController + requests/resources
+│   │   │   │   │   ├── Task/                    # TaskController + requests/resources
+│   │   │   │   └── UserController.php
+│   │   ├── Models/
+│   │   │   ├── V1/Company.php
+│   │   │   ├── V1/Project.php
+│   │   │   ├── V1/Task.php
+│   │   │   └── User.php
+│   │   ├── Providers/RepositoryServiceProvider.php
+│   │   └── Middleware/SecurityHeaders.php
+│   ├── routes/api.php               # v1 apiResource routes
+│   ├── database/migrations/         # companies, projects, tasks, company_user
+│   └── tests/                       # Feature + Unit tests
+└── src/fe/                        # Empty — frontend placeholder
 ```
 
 ## Architecture pattern
 
-Laravel monolithic MVC:
-- **Requests** enter via `routes/web.php` → controller → model → view
-- **Database** via Eloquent ORM (default `User` model only)
-- **Configuration** via `config/*.php` + `.env` (not committed; `.env.example` exists)
-- **Assets** compiled by Vite (dev) / `vite build` (prod)
+Layered monolithic API (single deployable unit):
+
+- **Routes** → `routes/api.php` → `Route::apiResource('v1', ...)` for companies, projects, tasks, users
+- **HTTP layer** — Controllers handle request/response, validation via FormRequest classes
+- **Service layer** (Company only) — `CompanyService` orchestrates business logic via `CompanyDTO`
+- **Repository layer** (Company only) — `CompanyRepository` wraps Eloquent `Company` model via `CompanyRepositoryInterface`
+- **Data access** — Eloquent ORM with `Company`, `Project`, `Task`, `User` models
+- **Response** — `ApiResponseClass` standardizes success/error JSON responses
+
+## Module patterns
+
+| Module | Pattern | Rationale |
+|--------|---------|-----------|
+| Company | Repository + Service + DTO | Core domain with relationships; ADR-0001/0002 |
+| Project | Direct Eloquent + FormRequest | Simple CRUD; ADR-0003 (KISS/YAGNI) |
+| Task | Direct Eloquent + FormRequest | Simple CRUD; ADR-0003 |
+| User | Direct Eloquent + route model binding | Simple CRUD; ADR-0003/0004 |
 
 ## Boundaries
 
-No module boundaries, no bounded contexts, no hexagonal adapters. Single deployable unit (Laravel app + MySQL + nginx). Not yet a modular monolith — no real domain complexity to justify it.
+No module boundaries or bounded contexts. Single deployable unit (Laravel app + MySQL + nginx). Not a modular monolith — no real domain complexity to justify it yet.
 
 ## External dependencies
 
-- MySQL 26.7.0 (database)
-- Packagist (Composer packages)
-- npm registry (frontend dev tools)
+- MySQL (database)
+- Packagist (Composer packages — Laravel 11, PHPUnit 11, Pint, PHPStan)
+- nginx (web server)
 
 ## Diagrams
 
-None yet — no real flows to diagram. Will be added in Phase 15 once business logic exists.
+None yet — flows documented via ADRs in `docs/adr/`. Will be expanded in Phase 15.
 
 ## Standards applied
 
-- PSR-4 autoloading (`App\` → `app/`, `Database\*` → `database/`, `Tests\` → `tests/`)
+- PSR-4 autoloading (`App\` → `app/`)
 - Laravel conventions (directory layout, config naming, migration naming)
+- Conventional Commits (`feat:`, `fix:`, `refactor:`)
+- Route model binding for `{project}`, `{task}`, `{user}` (ADR-0004)
+
+## Decisions
+
+See `docs/adr/`:
+- ADR-0001 — Repository/Service pattern for Company module
+- ADR-0002 — DTO pattern for company data transfer
+- ADR-0003 — Direct Eloquent for Project/Task/User controllers
+- ADR-0004 — Route model binding for User/Task/Project controllers

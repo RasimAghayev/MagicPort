@@ -1,123 +1,143 @@
 <?php
 
-namespace app\Http\Controllers\V1;
+namespace App\Http\Controllers\V1;
 
-use AllowDynamicProperties;
 use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\V1\Requests\User\StoreTaskRequest;
-use App\Http\Controllers\V1\Requests\User\UpdateTaskRequest;
-use app\Http\Controllers\V1\Resources\UserResource;
-use App\Interfaces\V1\Company\UserRepositoryInterface;
-use app\Services\V1\Interfaces\UserServiceInterface;
+use App\Models\User;
+use Exception;
+use Illuminate\Http\{JsonResponse, Request, Response};
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use App\Enums\UserStatus;
 
-#[AllowDynamicProperties]
 class UserController extends Controller
 {
-    protected $userService;
-
-    public function __construct(UserServiceInterface $userService)
-    {
-        $this->userService = $userService;
-    }
-
     /**
-     * Display a listing of the resource.
+     * @param Request $request
+     * @return Response
      */
-    public function index()
+    public function index(Request $request): Response
     {
-        $data = $this->userRepositoryInterface->index();
+        $perPage = $request->query('perPage', 10);
+        $maxPerPage = 100;
+        $perPage = min($perPage, $maxPerPage);
+
+        $users = User::orderBy('id', 'desc')
+            ->paginate($perPage)
+            ->appends($request->query());
 
         return ApiResponseClass::sendResponse(
-            UserResource::collection($data),
-            '',
+            $users,
+            'Users retrieved successfully.',
             200
         );
     }
 
-
     /**
-     * Store a newly created resource in storage.
+     * @param Request $request
+     * @return Response
      */
-    public function store(StoreTaskRequest $request)
+    public function store(Request $request): Response
     {
-        $details = [
-            'fin' => $request->fin,
-            'name' => $request->name,
-            'surname' => $request->surname,
-            'father' => $request->father,
-            'dob' => $request->dob,
-            'email' => $request->email,
-            'status' => $request->status,
-        ];
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|min:2|max:50',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|string|min:8',
+            'status' => ['sometimes', Rule::in(UserStatus::cases())],
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendResponse(
+                $validator->errors(),
+                'Validation failed.',
+                422
+            );
+        }
+
         DB::beginTransaction();
         try {
-            $user = $this->userRepositoryInterface->store($details);
-
+            $data = $validator->validated();
+            if (isset($data['password'])) {
+                $data['password'] = bcrypt($data['password']);
+            }
+            $user = User::create($data);
             DB::commit();
 
             return ApiResponseClass::sendResponse(
-                new UserResource($user),
+                $user,
                 'Company User Create Successful',
                 201
             );
         } catch (\Exception $ex) {
+            DB::rollBack();
             return ApiResponseClass::rollback($ex);
         }
     }
 
     /**
-     * Display the specified resource.
+     * @param User $user
+     * @return Response
      */
-    public function show($fin)
+    public function show(User $user): Response
     {
-        $user = $this->userRepositoryInterface->getByFin($fin);
-
         return ApiResponseClass::sendResponse(
-            new UserResource($user),
+            $user,
             '',
             200
         );
     }
 
-
     /**
-     * Update the specified resource in storage.
+     * @param Request $request
+     * @param User $user
+     * @return Response
      */
-    public function update(UpdateTaskRequest $request, $fin)
+    public function update(Request $request, User $user): Response
     {
-        $updateDetails = [
-            'fin' => $request->fin,
-            'name' => $request->name,
-            'surname' => $request->surname,
-            'father' => $request->father,
-            'dob' => $request->dob,
-            'email' => $request->email,
-            'status' => $request->status,
-        ];
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|string|min:2|max:50',
+            'email' => 'sometimes|email|unique:users,email,' . $user->id,
+            'password' => 'sometimes|string|min:8',
+            'status' => ['sometimes', Rule::in(UserStatus::cases())],
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponseClass::sendResponse(
+                $validator->errors(),
+                'Validation failed.',
+                422
+            );
+        }
+
         DB::beginTransaction();
         try {
-            $this->userRepositoryInterface->update($updateDetails, $fin);
-
+            $data = $validator->validated();
+            if (isset($data['password'])) {
+                $data['password'] = bcrypt($data['password']);
+            }
+            $user->update($data);
             DB::commit();
 
             return ApiResponseClass::sendResponse(
+                $user,
                 'Company User Update Successful',
-                '',
                 201
             );
         } catch (\Exception $ex) {
+            DB::rollBack();
             return ApiResponseClass::rollback($ex);
         }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @param User $user
+     * @return Response
      */
-    public function destroy($fin)
+    public function destroy(User $user): Response
     {
-        $this->userRepositoryInterface->delete($fin);
+        $user->delete();
 
         return ApiResponseClass::sendResponse(
             'Company User Delete Successful',

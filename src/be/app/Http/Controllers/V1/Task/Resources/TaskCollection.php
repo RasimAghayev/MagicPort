@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\V1\Task\Resources;
 
-use App\Http\V1\Resources\Auth\AuthResource;
 use App\Traits\PaginationLinksTrait;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Request;

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\V1\Task\Resources;
 
-use App\Models\API\V1\Customer;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;

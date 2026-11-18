@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\V1\Company\Service;
 
+use App\Http\Controllers\V1\Company\DTO\CompanyDTO;
 use App\Http\Controllers\V1\Company\Filter\CompanyFilters;
-use App\Http\Controllers\V1\Company\Repository\CompanyRepository;
 use App\Http\Controllers\V1\Company\Repository\CompanyRepositoryInterface;
 use App\Http\Controllers\V1\Company\Resources\CompanyCollection;
-use App\Models\User;
 use App\Models\V1\Company;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 
 class CompanyService implements CompanyServiceInterface
@@ -19,9 +19,9 @@ class CompanyService implements CompanyServiceInterface
 
     /**
      * @param Request $request
-     * @param bool $includeOrder
+     * @param bool $includeTasks
      * @param int $perPage
-     * @return mixed
+     * @return CompanyCollection
      */
     public function getCompanies(Request $request,
                                  ?bool    $includeTasks,
@@ -39,23 +39,37 @@ class CompanyService implements CompanyServiceInterface
             );
     }
 
-//    public function findByUserId(User $user): Company
-//    {
-//        // TODO: Implement findByUserId() method.
-//    }
-//
-//    public function findByCompanyId(User $phone): Company
-//    {
-//        // TODO: Implement findByCompanyId() method.
-//    }
-//
-//    public function create(string $name, Phone $phone): Company
-//    {
-//        // TODO: Implement create() method.
-//    }
-//
-//    public function deleteById(int $id): void
-//    {
-//        // TODO: Implement deleteById() method.
-//    }
+    public function findByUserId(int $userId): Company|Collection|null
+    {
+        return $this->companyRepositoryInterface->findByUserId($userId);
+    }
+
+    public function findById(int $id): ?Company
+    {
+        return $this->companyRepositoryInterface->find($id);
+    }
+
+    public function create(CompanyDTO $dto): Company
+    {
+        return $this->companyRepositoryInterface->create([
+            'user_id' => $dto->userId,
+            'name' => $dto->name,
+            'status' => $dto->status,
+        ]);
+    }
+
+    public function update(int $id, CompanyDTO $dto): Company
+    {
+        return $this->companyRepositoryInterface->update($id, [
+            'user_id' => $dto->userId,
+            'name' => $dto->name,
+            'status' => $dto->status,
+        ]);
+    }
+
+    public function deleteById(int $id): bool
+    {
+        $this->companyRepositoryInterface->delete($id);
+        return true;
+    }
 }

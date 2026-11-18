@@ -2,120 +2,97 @@
 
 namespace App\Http\Controllers\V1\Task;
 
-use App\Filters\V1\ProjectFilters;
+use App\Classes\ApiResponseClass;
+use App\Filters\V1\TaskFilters;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\V1\Customer;
-use App\Http\Controllers\V1\CustomerResource;
-use App\Http\Controllers\V1\ProjectCollection;
-use App\Http\Controllers\V1\StoreCustomerRequest;
-use App\Http\Controllers\V1\UpdateCustomerRequest;
-use App\Models\V1\Project;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use App\Http\Controllers\V1\Task\Requests\{StoreTaskRequest, UpdateTaskRequest};
+use App\Http\Controllers\V1\Task\Resources\{TaskCollection, TaskResource};
+use App\Models\V1\Task;
+use Exception;
+use Illuminate\Http\{JsonResponse, Request, Response};
+use Illuminate\Support\Facades\DB;
 
 class TaskController extends Controller
 {
-//    protected $projectRepository;
-//
-//    public function __construct(ProjectRepositoryInterface $projectRepository)
-//    {
-//        $this->projectRepository = $projectRepository;
-//    }
+    /**
+     * @param StoreTaskRequest $request
+     * @return TaskResource
+     */
+    public function store(StoreTaskRequest $request): TaskResource
+    {
+        $task = Task::create($request->all());
+        return new TaskResource($task);
+    }
 
     /**
-     * Display a listing of the resource.
-     *
-     * @return ProjectCollection
+     * @param Request $request
+     * @return TaskCollection
      */
-    public function index(Request $request)
+    public function index(Request $request): TaskCollection
     {
-        $filter = new ProjectFilters();
+        $filter = new TaskFilters();
         $queryItems = $filter->transform($request);
-        $customers = Project::select('id', 'name', 'type', 'created_at', 'updated_at')->where($queryItems);
-        $includeOrder = $request->query('tasks');
-        if ($includeOrder) {
-            $customers = $customers->with('projecttasks');
-        }
+        $tasks = Task::when($request->has('projects'), function ($query) {
+            $query->with('project');
+        })
+            ->where($queryItems);
         $perPage = $request->query('perPage', 10);
         $maxPerPage = 100;
-
         $perPage = min($perPage, $maxPerPage);
-        return new ProjectCollection(
-            $customers->orderBy('id', 'desc')
-                ->paginate($perPage)
-                ->appends(
-                    $request->query()
-                )
+        $paginatedTasks = $tasks->orderBy('id', 'desc')
+            ->paginate($perPage)
+            ->appends($request->query());
+        return new TaskCollection($paginatedTasks);
+    }
+
+    /**
+     * @param UpdateTaskRequest $request
+     * @param Task $task
+     * @return Response
+     */
+    public function update(UpdateTaskRequest $request,
+                           Task              $task)
+    {
+        DB::beginTransaction();
+        try {
+            $task->update($request->all());
+            DB::commit();
+
+            return ApiResponseClass::sendResponse(
+                new TaskResource($task),
+                'Task updated successfully.',
+                201
+            );
+        } catch (Exception $ex) {
+            return ApiResponseClass::rollback($ex,
+                'An error occurred while updating the task.',
+                $request);
+        }
+    }
+
+    /**
+     * @param Task $task
+     * @return JsonResponse
+     */
+    public function show(Task $task): JsonResponse
+    {
+        return ApiResponseClass::sendResponse(
+            new TaskResource(
+                resource: Task::findOrFail($task->id)
+            ),
+            'Task retrieved successfully.',
+            200
         );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param \App\Http\Requests\API\V1\StoreCustomerRequest $request
-     * @return Response
-     */
-    public function store(StoreCustomerRequest $request)
+    public function destroy(Task $task)
     {
-        return new CustomerResource($request->createData());
-    }
+        $task->delete();
 
-    /**
-     * Display the specified resource.
-     *
-     * @param \App\Models\API\V1\Customer $customer
-     * @return Response
-     */
-    public function show($id)
-    {
-        $customer = Customer::findOrFail($id);
-        if ($customer) {
-            $includeOrder = request()->query('includeCustomerOrders');
-            if ($includeOrder) {
-                $customer = $customer->loadMissing('customerorders');
-            }
-            return response()->json(data: [
-                'status' => true,
-                'message' => "Customer showed",
-                'data' => new CustomerResource($customer)
-            ]);
-        } else {
-            return response()->json([
-                'message' => "Customer ID not found",
-                'status' => false
-            ]);
-        }
+        return ApiResponseClass::sendResponse(
+            'Task Delete Successful.',
+            '',
+            204
+        );
     }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param \App\Http\Requests\API\V1\UpdateCustomerRequest $request
-     * @param \App\Models\API\V1\Customer $customer
-     * @return Response
-     */
-    public function update(UpdateCustomerRequest $request, Customer $customer)
-    {
-        $customer->update($request->all());
-        return response()->json([
-            'message' => "Customer Saved",
-            'status' => true
-        ]);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param \App\Models\V1\Customer $customer
-     * @return Response
-     */
-    public function destroy(Customer $customer)
-    {
-        return response()->json([
-            'id' => $customer->id,
-            'status' => $customer->delete(),
-            'message' => 'Success'
-        ]);
-    }
-
 }

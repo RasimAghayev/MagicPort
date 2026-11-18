@@ -56,6 +56,7 @@ class ProjectController extends Controller
                 'message' => 'Company'
             ]
         ];
+        $validateProjectData = [];
         if (!is_null($id)) {
             $validateProjectData = [
                 [

@@ -1,0 +1,33 @@
+#!/bin/sh
+# Pre-commit secret scan
+# Scans staged files for potential secrets before allowing commit
+
+secrets_found=0
+
+# Patterns that indicate potential secrets
+patterns=(
+  "db_password"
+  "db_root_password"
+  "APP_KEY"
+  "JWT_SECRET"
+  "DB_PASSWORD"
+  "sk_live_"
+  "sk_test_"
+  "ghp_"
+  "github_pat_"
+  "AKIA[0-9A-Z]{16}"
+)
+
+for pattern in "${patterns[@]}"; do
+  if git diff --cached --name-only | grep -v '^\.githooks/' | xargs grep -l "$pattern" 2>/dev/null; then
+    echo "ERROR: Potential secret found matching '$pattern' in staged files"
+    secrets_found=1
+  fi
+done
+
+if [ "$secrets_found" -eq 1 ]; then
+  echo "Commit blocked: secrets detected. Remove secrets or use --no-verify (not recommended)."
+  exit 1
+fi
+
+exit 0

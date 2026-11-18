@@ -1,0 +1,12 @@
+* text=auto
+
+*.php text
+*.js text
+*.json text
+*.yml text
+*.yaml text
+*.md text
+*.sh text eol=lf
+*.dockerfile text eol=lf
+*.gitignore text
+*.env.example text

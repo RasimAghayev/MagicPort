@@ -1,0 +1,10 @@
+name: magicport
+type: service
+provides:
+  - api: openapi.yaml
+  - health: [/health/live, /health/ready]
+depends_on:
+  services: []
+  libraries: []
+runs_standalone: true
+related: []

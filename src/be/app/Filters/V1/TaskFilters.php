@@ -2,7 +2,7 @@
 
 namespace app\Filters\V1;
 
-use App\Filters\ApiFilter;
+use app\Filters\ApiFilter;
 
 class TaskFilters extends ApiFilter
 {

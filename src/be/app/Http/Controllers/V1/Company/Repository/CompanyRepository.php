@@ -4,12 +4,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\V1\Company\Repository;
 
 use App\Http\Controllers\V1\Company\Resources\CompanyCollection;
-use App\Http\Controllers\V1\Project\Requests\StoreProjectRequest;
-use App\Http\Controllers\V1\Project\Resources\ProjectResource;
-use App\Models\User;
 use App\Models\V1\Company;
-use App\Models\V1\Project;
-use Illuminate\Database\Eloquent\Collection;
 
 class CompanyRepository implements CompanyRepositoryInterface
 {
@@ -24,31 +19,6 @@ class CompanyRepository implements CompanyRepositoryInterface
      * @param StoreProjectRequest $request
      * @return ProjectResource
      */
-    private function getValidateData($request, $id = null): array
-    {
-        $validateData = [
-            [
-                'model' => User::class,
-                'request' => ['id' => $request->userId],
-                'message' => 'User'
-            ],
-        ];
-        if (!is_null($id)) {
-            $validateProjectData = [
-                [
-                    'model' => Company::class,
-                    'request' => ['id' => $request->companyId],
-                    'message' => 'Company'
-                ],
-                [
-                    'model' => Company::class,
-                    'request' => ['id' => $request->companyId, 'user_id' => $request->userId],
-                    'message' => 'Company'
-                ]
-            ];
-        }
-        return array_merge($validateData, $validateProjectData);
-    }
     public function getFilteredCompanies(array $queryItems,
                                          ?bool  $includeTasks,
                                          int   $perPage): CompanyCollection

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\V1\Company\Filter;
 
-use App\Filters\ApiFilter;
+use app\Filters\ApiFilter;
 
 class CompanyFilters extends ApiFilter
 {

@@ -28,7 +28,7 @@ class CompanyController extends Controller
     {
         $companyService = app(CompanyServiceInterface::class);
         $includeTasks = (bool) $request->query('tasks');
-        $perPage = (int) $request->query('perPage', 10);
+        $perPage = (int) $request->query('perPage', '10');
 
         return $companyService->getCompanies($request,
             $includeTasks,

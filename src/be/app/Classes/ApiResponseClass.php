@@ -11,11 +11,11 @@ class ApiResponseClass
     /**
      * @param $e
      * @param $message
-     * @return void
+     * @return JsonResponse|Response
      */
     public static function rollback($e,
                                     $message = 'Something went wrong! Process not completed',
-                                    $request = null): JsonResponse|Response
+                                    $request = null): void
     {
         DB::rollBack();
         self::throw($e, $message);

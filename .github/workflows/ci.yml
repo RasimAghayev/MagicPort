@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches: [main, preview, test]
+  pull_request:
+    branches: [preview]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  COMPOSE_PROJECT_NAME: magicport-ci
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        working-directory: src/be
+      - name: PHP-CS-Fixer dry run
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+        working-directory: src/be
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --no-progress
+        working-directory: src/be
+
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: --verbose --log-opts='--all'
+
+  test:
+    name: Tests
+    needs: [lint, secret-scan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker BuildKit
+        uses: docker/setup-buildx-action@v3
+      - name: Build test target
+        run: docker build --target test -t magicport-test .
+      - name: Run tests
+        run: docker run --rm magicport-test
+
+  build:
+    name: Build Image
+    needs: [test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker BuildKit
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  security-scan:
+    name: Dependency Audit
+    needs: [lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        working-directory: src/be
+      - name: Composer audit
+        run: composer audit --no-interaction || true
+        working-directory: src/be

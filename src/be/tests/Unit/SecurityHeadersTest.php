@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Response;
 
 class SecurityHeadersTest extends TestCase
 {
@@ -13,7 +14,7 @@ class SecurityHeadersTest extends TestCase
         $middleware = new SecurityHeaders();
 
         $request = Request::create('/');
-        $response = $middleware->handle($request, fn ($req) => response('ok'));
+        $response = $middleware->handle($request, fn ($req) => new Response('ok'));
 
         $this->assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
         $this->assertSame('DENY', $response->headers->get('X-Frame-Options'));

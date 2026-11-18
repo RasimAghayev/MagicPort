@@ -35,8 +35,8 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
         working-directory: src/be
-      - name: PHP-CS-Fixer dry run
-        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+      - name: Pint dry run
+        run: vendor/bin/pint --test
         working-directory: src/be
       - name: PHPStan
         run: vendor/bin/phpstan analyse --no-progress

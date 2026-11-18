@@ -1,0 +1,164 @@
+{
+	"info": {
+		"_postman_id": "4df1b369-1b88-483a-a26d-894017b4d95e",
+		"name": "MagicPort",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1965733"
+	},
+	"item": [
+		{
+			"name": "check",
+			"item": [
+				{
+					"name": "db",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/check/db",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"check",
+								"db"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/check/health",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"check",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "static",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/check/static",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"check",
+								"static"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ip",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/check/ip",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"check",
+								"ip"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "clear-cache",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Api-Version",
+								"value": "v1",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{local}}/check/clear-cache",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"check",
+								"clear-cache"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "/",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/v1/projects",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"v1",
+								"projects"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "local",
+			"value": "http://localhost/api",
+			"type": "string"
+		}
+	]
+}

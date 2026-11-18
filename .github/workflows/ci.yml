@@ -70,6 +70,9 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
         working-directory: src/be
+      - name: Generate app key
+        run: php artisan key:generate --ansi --force
+        working-directory: src/be
       - name: Run tests
         run: vendor/bin/phpunit --no-coverage
         working-directory: src/be

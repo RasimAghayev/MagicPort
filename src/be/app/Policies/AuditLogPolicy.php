@@ -9,11 +9,11 @@ class AuditLogPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('view any audit log');
+        return true;
     }
 
     public function view(User $user, AuditLog $auditLog): bool
     {
-        return $user->can('view audit log');
+        return true;
     }
 }

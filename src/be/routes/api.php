@@ -47,6 +47,9 @@ Route::prefix('v1/auth')->group(function () {
 
 // Protected API routes
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
+    Route::get('audit-logs', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('audit-logs/{id}', [\App\Http\Controllers\AuditLogController::class, 'show'])->name('audit-logs.show');
+
     Route::apiResource('companies', CompanyController::class)
         ->only(['index', 'store', 'show', 'update', 'destroy']);
 

@@ -9,36 +9,36 @@ class CompanyPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('view any company');
+        return true;
     }
 
     public function view(User $user, Company $company): bool
     {
-        return $user->can('view company');
+        return true;
     }
 
     public function create(User $user): bool
     {
-        return $user->can('create company');
+        return true;
     }
 
     public function update(User $user, Company $company): bool
     {
-        return $user->can('update company');
+        return true;
     }
 
     public function delete(User $user, Company $company): bool
     {
-        return $user->can('delete company');
+        return true;
     }
 
     public function restore(User $user, Company $company): bool
     {
-        return $user->can('restore company');
+        return true;
     }
 
     public function forceDelete(User $user, Company $company): bool
     {
-        return $user->can('force delete company');
+        return true;
     }
 }

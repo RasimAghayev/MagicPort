@@ -10,7 +10,7 @@ class ProjectCollection extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'data' => ProjectResource::collection($this->collection),
+            'data' => ProjectResource::collection($this->resource),
             'meta' => [
                 'current_page' => $this->currentPage(),
                 'per_page' => $this->perPage(),

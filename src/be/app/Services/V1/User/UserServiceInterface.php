@@ -10,6 +10,8 @@ interface UserServiceInterface
 {
     public function all(array $filters = [], int $perPage = 15): LengthAwarePaginator;
 
+    public function findById(int $id): ?User;
+
     public function findByEmail(string $email): ?User;
 
     public function create(array $data): User;

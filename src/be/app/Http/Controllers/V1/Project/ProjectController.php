@@ -16,7 +16,7 @@ class ProjectController extends Controller
         protected ProjectServiceInterface $service
     ) {}
 
-    public function index(Request $request): ProjectCollection
+    public function index(Request $request)
     {
         $filters = $request->only(['status', 'company_id', 'user_id', 'search']);
         $perPage = (int) $request->query('perPage', 15);
@@ -27,7 +27,7 @@ class ProjectController extends Controller
         );
     }
 
-    public function store(StoreProjectRequest $request): ProjectResource
+    public function store(StoreProjectRequest $request)
     {
         $project = $this->service->create($request->validated());
 
@@ -37,7 +37,7 @@ class ProjectController extends Controller
         );
     }
 
-    public function show(string $code): ProjectResource
+    public function show(string $code)
     {
         $project = $this->service->findByCode($code);
         if (!$project) {
@@ -50,7 +50,7 @@ class ProjectController extends Controller
         );
     }
 
-    public function update(UpdateProjectRequest $request, string $code): ProjectResource
+    public function update(UpdateProjectRequest $request, string $code)
     {
         $project = $this->service->update($code, $request->validated());
 
@@ -70,7 +70,7 @@ class ProjectController extends Controller
         return $this->respondDeleted('Project deleted successfully.');
     }
 
-    public function restore(string $code): ProjectResource
+    public function restore(string $code)
     {
         $project = $this->service->restore($code);
         if (!$project) {

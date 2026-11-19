@@ -16,7 +16,7 @@ class CompanyController extends Controller
         protected CompanyServiceInterface $service
     ) {}
 
-    public function index(Request $request): CompanyCollection
+    public function index(Request $request)
     {
         $filters = $request->only(['status', 'search', 'with_tasks']);
         $perPage = (int) $request->query('perPage', 15);
@@ -27,7 +27,7 @@ class CompanyController extends Controller
         );
     }
 
-    public function store(StoreCompanyRequest $request): CompanyResource
+    public function store(StoreCompanyRequest $request)
     {
         $company = $this->service->create($request->validated());
 
@@ -37,7 +37,7 @@ class CompanyController extends Controller
         );
     }
 
-    public function show(string $code): CompanyResource
+    public function show(string $code)
     {
         $company = $this->service->findByCode($code);
         if (!$company) {
@@ -50,7 +50,7 @@ class CompanyController extends Controller
         );
     }
 
-    public function update(UpdateCompanyRequest $request, string $code): CompanyResource
+    public function update(UpdateCompanyRequest $request, string $code)
     {
         $company = $this->service->update($code, $request->validated());
 
@@ -70,7 +70,7 @@ class CompanyController extends Controller
         return $this->respondDeleted('Company deleted successfully.');
     }
 
-    public function restore(string $code): CompanyResource
+    public function restore(string $code)
     {
         $company = $this->service->restore($code);
         if (!$company) {

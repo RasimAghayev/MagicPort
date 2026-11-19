@@ -16,7 +16,7 @@ class TaskController extends Controller
         protected TaskServiceInterface $service
     ) {}
 
-    public function index(Request $request): TaskCollection
+    public function index(Request $request)
     {
         $filters = $request->only(['status', 'project_id', 'user_id', 'search']);
         $perPage = (int) $request->query('perPage', 15);
@@ -27,7 +27,7 @@ class TaskController extends Controller
         );
     }
 
-    public function store(StoreTaskRequest $request): TaskResource
+    public function store(StoreTaskRequest $request)
     {
         $task = $this->service->create($request->validated());
 
@@ -37,7 +37,7 @@ class TaskController extends Controller
         );
     }
 
-    public function show(string $code): TaskResource
+    public function show(string $code)
     {
         $task = $this->service->findByCode($code);
         if (!$task) {
@@ -50,7 +50,7 @@ class TaskController extends Controller
         );
     }
 
-    public function update(UpdateTaskRequest $request, string $code): TaskResource
+    public function update(UpdateTaskRequest $request, string $code)
     {
         $task = $this->service->update($code, $request->validated());
 
@@ -70,7 +70,7 @@ class TaskController extends Controller
         return $this->respondDeleted('Task deleted successfully.');
     }
 
-    public function restore(string $code): TaskResource
+    public function restore(string $code)
     {
         $task = $this->service->restore($code);
         if (!$task) {

@@ -104,6 +104,5 @@ Single deployable unit (Laravel app + MySQL + nginx). All modules share the same
 - PSR-4 autoloading (`App\` → `app/`)
 - Laravel conventions (directory layout, config naming, migration naming)
 - Conventional Commits (`feat:`, `fix:`, `refactor:`)
-- Route model binding via `scopedBy('code')` for company/project/task
 - String primary keys for company/project/task (`code` field)
 - Soft deletes on all domain tables

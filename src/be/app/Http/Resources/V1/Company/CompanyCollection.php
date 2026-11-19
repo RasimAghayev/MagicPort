@@ -10,7 +10,7 @@ class CompanyCollection extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'data' => CompanyResource::collection($this->collection),
+            'data' => CompanyResource::collection($this->resource),
             'meta' => [
                 'current_page' => $this->currentPage(),
                 'per_page' => $this->perPage(),

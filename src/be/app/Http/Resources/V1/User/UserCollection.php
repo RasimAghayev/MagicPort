@@ -10,7 +10,7 @@ class UserCollection extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'data' => UserResource::collection($this->collection),
+            'data' => UserResource::collection($this->resource),
             'meta' => [
                 'current_page' => $this->currentPage(),
                 'per_page' => $this->perPage(),

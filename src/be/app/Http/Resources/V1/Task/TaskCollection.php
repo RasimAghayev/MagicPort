@@ -10,7 +10,7 @@ class TaskCollection extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'data' => TaskResource::collection($this->collection),
+            'data' => TaskResource::collection($this->resource),
             'meta' => [
                 'current_page' => $this->currentPage(),
                 'per_page' => $this->perPage(),

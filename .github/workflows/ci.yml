@@ -77,6 +77,9 @@ jobs:
       - name: Publish Sanctum migrations
         run: php artisan vendor:publish --tag=sanctum-migrations --ansi --force
         working-directory: src/be
+      - name: Run migrations
+        run: php artisan migrate --force
+        working-directory: src/be
       - name: Run tests
         run: vendor/bin/phpunit --no-coverage
         working-directory: src/be

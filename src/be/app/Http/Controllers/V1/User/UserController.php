@@ -16,7 +16,7 @@ class UserController extends Controller
         protected UserServiceInterface $service
     ) {}
 
-    public function index(Request $request): UserCollection
+    public function index(Request $request)
     {
         $filters = $request->only(['status', 'search']);
         $perPage = (int) $request->query('perPage', 15);
@@ -27,7 +27,7 @@ class UserController extends Controller
         );
     }
 
-    public function store(StoreUserRequest $request): UserResource
+    public function store(StoreUserRequest $request)
     {
         $user = $this->service->create($request->validated());
 
@@ -37,7 +37,7 @@ class UserController extends Controller
         );
     }
 
-    public function show(int $id): UserResource
+    public function show(int $id)
     {
         $user = $this->service->findById($id);
         if (!$user) {
@@ -50,7 +50,7 @@ class UserController extends Controller
         );
     }
 
-    public function update(UpdateUserRequest $request, int $id): UserResource
+    public function update(UpdateUserRequest $request, int $id)
     {
         $user = $this->service->update($id, $request->validated());
 
@@ -70,7 +70,7 @@ class UserController extends Controller
         return $this->respondDeleted('User deleted successfully.');
     }
 
-    public function restore(int $id): UserResource
+    public function restore(int $id)
     {
         $user = $this->service->restore($id);
         if (!$user) {

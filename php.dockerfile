@@ -35,6 +35,6 @@ CMD ["php-fpm"]
 
 FROM base AS test
 RUN cp .env.example .env 2>/dev/null || true
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
 RUN php artisan key:generate 2>/dev/null || true
 ENTRYPOINT ["/var/www/html/be/vendor/bin/phpunit"]

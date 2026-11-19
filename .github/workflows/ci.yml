@@ -27,9 +27,9 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b163a2ea8f20f133e1705b372e5
+        uses: actions/checkout@v4
       - name: Setup PHP
-        uses: shivammathur/setup-php@2529a90476210698169f690a349063f06c16984a
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '${{ env.PHP_VERSION }}'
           coverage: none
@@ -49,11 +49,11 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b163a2ea8f20f133e1705b372e5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Run gitleaks
-        uses: gitleaks/gitleaks-action@104042897fef7b2938c3fbfcdf7c8380ef48a473
+        uses: gitleaks/gitleaks-action@v2
 
   test:
     name: Tests
@@ -62,9 +62,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b163a2ea8f20f133e1705b372e5
+        uses: actions/checkout@v4
       - name: Setup PHP
-        uses: shivammathur/setup-php@2529a90476210698169f690a349063f06c16984a
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '${{ env.PHP_VERSION }}'
           coverage: none
@@ -86,25 +86,25 @@ jobs:
     if: github.event_name == 'push'
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b163a2ea8f20f133e1705b372e5
+        uses: actions/checkout@v4
       - name: Set up Docker BuildKit
-        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce0c25c335
+        uses: docker/setup-buildx-action@v3
       - name: Log in to GHCR
-        uses: docker/login-action@9743a8c986dd151e0e75c8590b2e6e3c321277e5
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@7077d154c8837dcde3030b0106f2d0a3cdfa620d
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha
             type=ref,event=branch
       - name: Build image
-        uses: docker/build-push-action@57237642000185e6c743c263e30a0f5634e10868
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: php.dockerfile
@@ -122,9 +122,9 @@ jobs:
     if: github.event_name == 'push'
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b163a2ea8f20f133e1705b372e5
+        uses: actions/checkout@v4
       - name: Setup PHP
-        uses: shivammathur/setup-php@2529a90476210698169f690a349063f06c16984a
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '${{ env.PHP_VERSION }}'
           coverage: none

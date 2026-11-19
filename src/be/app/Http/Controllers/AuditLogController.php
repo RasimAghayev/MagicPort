@@ -7,11 +7,13 @@ namespace App\Http\Controllers;
 use App\Interfaces\AuditLogRepositoryInterface;
 use App\Http\Resources\AuditLogResource;
 use App\Models\AuditLog;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use OpenApi\Annotations as OA;
 
 class AuditLogController extends Controller
 {
+    use AuthorizesRequests;
     public function __construct(
         protected AuditLogRepositoryInterface $auditLogRepository
     ) {}

@@ -8,19 +8,19 @@
         "php": "^8.4.27",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.1",
-        "darkaonline/l5-swagger": "^8.8",
+        "darkaonline/l5-swagger": "^8.6",
         "spatie/laravel-permission": "^7.1",
         "laravel/tinker": "^2.11"
     },
     "require-dev": {
-        "fakerphp/faker": "^1.25",
+        "fakerphp/faker": "^1.24",
         "laravel/pint": "^1.22",
         "laravel/sail": "^1.30",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^3.8",
         "phpunit/phpunit": "^12.0",
-        "spatie/laravel-ignition": "^3.4"
+        "spatie/laravel-ignition": "^2.12"
     },
     "autoload": {
         "psr-4": {

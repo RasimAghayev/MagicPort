@@ -74,6 +74,9 @@ jobs:
       - name: Generate app key
         run: cp .env.example .env && php artisan key:generate --ansi --force
         working-directory: src/be
+      - name: Publish Sanctum migrations
+        run: php artisan vendor:publish --tag=sanctum-migrations --ansi --force
+        working-directory: src/be
       - name: Run tests
         run: vendor/bin/phpunit --no-coverage
         working-directory: src/be

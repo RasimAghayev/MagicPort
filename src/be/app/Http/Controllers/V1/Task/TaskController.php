@@ -21,10 +21,7 @@ class TaskController extends Controller
         $filters = $request->only(['status', 'project_id', 'user_id', 'search']);
         $perPage = (int) $request->query('perPage', 15);
 
-        return $this->respond(
-            new TaskCollection($this->service->all($filters, $perPage)),
-            'Tasks retrieved successfully.'
-        );
+        return new TaskCollection($this->service->all($filters, $perPage));
     }
 
     public function store(StoreTaskRequest $request)

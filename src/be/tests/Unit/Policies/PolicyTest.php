@@ -5,10 +5,12 @@ namespace Tests\Unit\Policies;
 use App\Models\Company;
 use App\Models\User;
 use App\Policies\CompanyPolicy;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PolicyTest extends TestCase
 {
+    use RefreshDatabase;
     public function test_company_policy_view_any(): void
     {
         $policy = new CompanyPolicy();

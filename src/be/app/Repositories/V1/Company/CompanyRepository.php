@@ -62,7 +62,7 @@ class CompanyRepository implements CompanyRepositoryInterface
     public function restore(string $code): ?Company
     {
         $company = Company::withTrashed()->where('code', $code)->first();
-        if (!$company) {
+        if (!$company || $company->deleted_at === null) {
             return null;
         }
         $company->restore();

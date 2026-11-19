@@ -21,10 +21,7 @@ class UserController extends Controller
         $filters = $request->only(['status', 'search']);
         $perPage = (int) $request->query('perPage', 15);
 
-        return $this->respond(
-            new UserCollection($this->service->all($filters, $perPage)),
-            'Users retrieved successfully.'
-        );
+        return new UserCollection($this->service->all($filters, $perPage));
     }
 
     public function store(StoreUserRequest $request)

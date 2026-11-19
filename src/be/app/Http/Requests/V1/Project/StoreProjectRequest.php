@@ -14,7 +14,7 @@ class StoreProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'company_id' => ['required', 'exists:companies,id'],
+            'company_code' => ['required', 'exists:companies,code'],
             'user_id'    => ['required', 'exists:users,id'],
             'name'       => ['required', 'string', 'max:255'],
             'code'       => ['required', 'string', 'max:50', 'unique:projects'],
@@ -28,7 +28,7 @@ class StoreProjectRequest extends FormRequest
             'name.required'       => 'The project name is required.',
             'code.required'       => 'The project code is required.',
             'code.unique'         => 'The project code is already taken.',
-            'company_id.exists'   => 'The selected company does not exist.',
+            'company_code.exists'   => 'The selected company does not exist.',
             'user_id.exists'      => 'The selected user does not exist.',
         ];
     }

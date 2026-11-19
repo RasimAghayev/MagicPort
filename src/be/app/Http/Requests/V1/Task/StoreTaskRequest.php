@@ -14,7 +14,7 @@ class StoreTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'project_id' => ['required', 'exists:projects,id'],
+            'project_code' => ['required', 'exists:projects,code'],
             'user_id'    => ['sometimes', 'nullable', 'exists:users,id'],
             'title'      => ['required', 'string', 'max:255'],
             'code'       => ['required', 'string', 'max:50', 'unique:tasks'],
@@ -29,7 +29,7 @@ class StoreTaskRequest extends FormRequest
             'title.required'   => 'The task title is required.',
             'code.required'    => 'The task code is required.',
             'code.unique'      => 'The task code is already taken.',
-            'project_id.exists'=> 'The selected project does not exist.',
+            'project_code.exists'=> 'The selected project does not exist.',
         ];
     }
 }

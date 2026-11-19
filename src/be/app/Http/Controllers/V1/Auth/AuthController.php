@@ -15,18 +15,18 @@ class AuthController extends Controller
         protected AuthServiceInterface $service
     ) {}
 
-    public function login(LoginRequest $request): TokenResource
+    public function login(LoginRequest $request)
     {
         $token = $this->service->login($request->validated());
 
-        return new TokenResource($token);
+        return response(new TokenResource($token), 200);
     }
 
-    public function register(RegisterRequest $request): TokenResource
+    public function register(RegisterRequest $request)
     {
         $token = $this->service->register($request->validated());
 
-        return new TokenResource($token);
+        return response(new TokenResource($token), 201);
     }
 
     public function logout(Request $request)

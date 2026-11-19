@@ -21,10 +21,7 @@ class ProjectController extends Controller
         $filters = $request->only(['status', 'company_id', 'user_id', 'search']);
         $perPage = (int) $request->query('perPage', 15);
 
-        return $this->respond(
-            new ProjectCollection($this->service->all($filters, $perPage)),
-            'Projects retrieved successfully.'
-        );
+        return new ProjectCollection($this->service->all($filters, $perPage));
     }
 
     public function store(StoreProjectRequest $request)

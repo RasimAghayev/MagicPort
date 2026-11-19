@@ -38,13 +38,15 @@ Route::prefix('v1/auth')->group(function () {
         ->name('auth.login');
     Route::post('register', [AuthController::class, 'register'])
         ->name('auth.register');
+
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
+        Route::get('me', [AuthController::class, 'me'])->name('auth.me');
+    });
 });
 
 // Protected API routes
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
-    Route::get('me', [AuthController::class, 'me'])->name('auth.me');
-
     Route::apiResource('companies', CompanyController::class)
         ->only(['index', 'store', 'show', 'update', 'destroy']);
 

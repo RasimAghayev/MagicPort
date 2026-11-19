@@ -21,10 +21,7 @@ class CompanyController extends Controller
         $filters = $request->only(['status', 'search', 'with_tasks']);
         $perPage = (int) $request->query('perPage', 15);
 
-        return $this->respond(
-            new CompanyCollection($this->service->all($filters, $perPage)),
-            'Companies retrieved successfully.'
-        );
+        return new CompanyCollection($this->service->all($filters, $perPage));
     }
 
     public function store(StoreCompanyRequest $request)

@@ -46,8 +46,7 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::get('me', [AuthController::class, 'me'])->name('auth.me');
 
     Route::apiResource('companies', CompanyController::class)
-        ->only(['index', 'store', 'show', 'update', 'destroy'])
-        ->scopedBy('code');
+        ->only(['index', 'store', 'show', 'update', 'destroy']);
 
     Route::post('companies/{code}/restore', [CompanyController::class, 'restore'])
         ->name('companies.restore');
@@ -55,8 +54,7 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         ->name('companies.force-delete');
 
     Route::apiResource('projects', ProjectController::class)
-        ->only(['index', 'store', 'show', 'update', 'destroy'])
-        ->scopedBy('code');
+        ->only(['index', 'store', 'show', 'update', 'destroy']);
 
     Route::post('projects/{code}/restore', [ProjectController::class, 'restore'])
         ->name('projects.restore');
@@ -64,8 +62,7 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         ->name('projects.force-delete');
 
     Route::apiResource('tasks', TaskController::class)
-        ->only(['index', 'store', 'show', 'update', 'destroy'])
-        ->scopedBy('code');
+        ->only(['index', 'store', 'show', 'update', 'destroy']);
 
     Route::post('tasks/{code}/restore', [TaskController::class, 'restore'])
         ->name('tasks.restore');

@@ -2,56 +2,59 @@
 
 namespace App\Models;
 
-use app\Enums\DefaultStatus;
+use App\Models\AuditLog;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\V1\Company;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'phone',
+        'date_of_birth',
+        'status',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'date_of_birth' => 'date',
+        'deleted_at' => 'datetime',
+    ];
+
+    public function companies()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->belongsToMany(Company::class, 'company_user', 'user_id', 'company_code')
+            ->withPivot('status')
+            ->withTimestamps();
     }
-    public function companies(): BelongsToMany
+
+    public function tasks(): HasMany
     {
-        return $this->belongsToMany(Company::class)->withPivot('status');
+        return $this->hasMany(Task::class);
     }
-    public function getPivotStatusAttribute()
+
+    public function auditLogs(): HasMany
     {
-        return DefaultStatus::from($this->pivot->status);
+        return $this->morphMany(AuditLog::class, 'auditable');
+    }
+
+    public function tokens()
+    {
+        return $this->morphMany(\Laravel\Sanctum\PersonalAccessToken::class, 'tokenable');
     }
 }

@@ -2,28 +2,72 @@
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Route ;
+use Illuminate\Support\Facades\Route;
+use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Info(
+ *     title="MagicPort API",
+ *     version="1.0.0",
+ *     description="MagicPort Laravel backend API — company, project, task, user management with Sanctum auth and RBAC.",
+ *     @OA\Contact(email="support@magicport.example"),
+ *     @OA\License(name="MIT", url="https://opensource.org/licenses/MIT")
+ * )
+ *
+ * @OA\Server(
+ *     url=L5_SWAGGER_CONST_HOST,
+ *     description="API Server"
+ * )
+ *
+ * @OA\SecurityScheme(
+ *     type="http",
+ *     scheme="bearer",
+ *     bearerFormat="JWT",
+ *     securityScheme="sanctum",
+ *     description="Sanctum API token"
+ * )
+ */
 
-Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\V1'], function () {
-    Route::apiResource('companies', 'Company\CompanyController');
-    Route::apiResource('projects', 'Project\ProjectController');
-    Route::apiResource('tasks', 'Task\TaskController');
-    Route::apiResource('users', 'UserController');
+Route::group([
+    'prefix' => 'v1',
+    'namespace' => 'App\Http\Controllers',
+    'middleware' => ['auth:sanctum'],
+], function () {
+    Route::apiResource('companies', CompanyController::class);
+    Route::apiResource('projects', ProjectController::class);
+    Route::apiResource('tasks', TaskController::class);
+    Route::apiResource('users', UserController::class);
+
+    Route::post('companies/{code}/restore', [CompanyController::class, 'restore']);
+    Route::delete('companies/{code}/force-delete', [CompanyController::class, 'forceDelete']);
+    Route::post('projects/{code}/restore', [ProjectController::class, 'restore']);
+    Route::delete('projects/{code}/force-delete', [ProjectController::class, 'forceDelete']);
+    Route::post('tasks/{code}/restore', [TaskController::class, 'restore']);
+    Route::delete('tasks/{code}/force-delete', [TaskController::class, 'forceDelete']);
+    Route::post('users/{id}/restore', [UserController::class, 'restore']);
+    Route::delete('users/{id}/force-delete', [UserController::class, 'forceDelete']);
+
+    Route::apiResource('audit-logs', AuditLogController::class)->only(['index', 'show']);
+
+    Route::prefix('auth')->group(function () {
+        Route::post('login', [AuthController::class, 'login'])->middleware('guest');
+        Route::post('register', [AuthController::class, 'register'])->middleware('guest');
+        Route::post('logout', [AuthController::class, 'logout']);
+        Route::get('me', [AuthController::class, 'me']);
+    });
 });
-
-
 
 Route::fallback(function () {
     if (request()->wantsJson()) {
         return response()->json([
-            'error' => 'Resources not found.',
+            'error' => 'Resource not found.',
             'message' => 'The resource you are looking for could not be found.'
         ], 404);
     }
 
     return response()->view('errors.404', [], 404);
 });
+
 Route::group(['prefix' => 'check'], function () {
     Route::get('/db', function () {
         try {
@@ -54,5 +98,4 @@ Route::group(['prefix' => 'check'], function () {
         Artisan::call('view:clear');
         return "Cache is cleared ".date(now());
     });
-
 });

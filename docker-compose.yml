@@ -10,12 +10,12 @@ services:
       context: .
       dockerfile: nginx.dockerfile
       target: runtime
-    container_name: nginx
+    container_name: ${NGINX_CONTAINER_NAME:-nginx}
     depends_on:
       php:
         condition: service_healthy
     ports:
-      - "80:80"
+      - "${NGINX_HOST_PORT:-80}:80"
     volumes:
       - ./src/be:/var/www/html/be:delegated
     networks:
@@ -26,15 +26,24 @@ services:
       context: .
       dockerfile: php.dockerfile
       target: runtime
-    container_name: php
+    container_name: ${PHP_CONTAINER_NAME:-php}
     volumes:
       - ./src/be:/var/www/html/be:delegated
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - DB_CONNECTION=${DB_CONNECTION:-mysql}
+      - DB_HOST=${DB_HOST:-mysql}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_DATABASE=${DB_DATABASE:-project_development}
+      - DB_USERNAME=${DB_USERNAME:-magicport}
+      - DB_PASSWORD=${DB_PASSWORD:-change-me-in-production}
     networks:
       - magicport
 
   composer:
-    image: composer:2.8
-    container_name: composer
+    image: ${COMPOSER_IMAGE:-composer:2.8}
+    container_name: ${COMPOSER_CONTAINER_NAME:-composer}
     volumes:
       - ./src/be:/var/www/html/be
     working_dir: /var/www/html/be
@@ -46,11 +55,19 @@ services:
       context: .
       dockerfile: php.dockerfile
       target: runtime
-    container_name: artisan
+    container_name: ${ARTISAN_CONTAINER_NAME:-artisan}
     volumes:
       - ./src/be:/var/www/html/be
     working_dir: /var/www/html/be
     entrypoint: ["php", "artisan"]
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - DB_CONNECTION=${DB_CONNECTION:-mysql}
+      - DB_HOST=${DB_HOST:-mysql}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_DATABASE=${DB_DATABASE:-project_development}
+      - DB_USERNAME=${DB_USERNAME:-magicport}
+      - DB_PASSWORD=${DB_PASSWORD:-change-me-in-production}
     networks:
       - magicport
 
@@ -59,32 +76,38 @@ services:
       context: .
       dockerfile: php.dockerfile
       target: test
-    container_name: phpunit
+    container_name: ${PHPUNIT_CONTAINER_NAME:-phpunit}
     volumes:
       - ./src/be:/var/www/html/be
     working_dir: /var/www/html/be
     entrypoint: ["/var/www/html/be/vendor/bin/phpunit"]
+    environment:
+      - APP_ENV=${APP_ENV:-testing}
+      - DB_CONNECTION=${DB_CONNECTION:-mysql}
+      - DB_HOST=${DB_HOST:-mysql}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_DATABASE=${DB_DATABASE:-project_development}
+      - DB_USERNAME=${DB_USERNAME:-magicport}
+      - DB_PASSWORD=${DB_PASSWORD:-change-me-in-production}
     networks:
       - magicport
 
   mysql:
-    image: mysql:26.7.0
-    container_name: mysql
+    image: ${MYSQL_IMAGE:-mysql:26.7.0}
+    container_name: ${MYSQL_CONTAINER_NAME:-mysql}
     ports:
-      - "4306:3306"
+      - "${MYSQL_HOST_PORT:-4306}:3306"
     volumes:
       - ./db/mysql:/var/lib/mysql
     networks:
       - magicport
     environment:
-      - MYSQL_DATABASE=project_development
-      - MYSQL_USER=magicport
-      - MYSQL_PASSWORD=magicport
-      - MYSQL_ROOT_PASSWORD=magicport
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-project_development}
+      - MYSQL_USER=${MYSQL_USER:-magicport}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-change-me-in-production}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-change-me-in-production}
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 5s
       retries: 10
-    networks:
-      - magicport

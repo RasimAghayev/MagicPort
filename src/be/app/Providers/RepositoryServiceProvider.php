@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Interfaces\AuditLogRepositoryInterface;
 use App\Http\Resources\V1\Company\CompanyResource;
 use App\Http\Resources\V1\Project\ProjectResource;
 use App\Http\Resources\V1\Task\TaskResource;
@@ -14,6 +15,7 @@ use App\Repositories\V1\Task\TaskRepository;
 use App\Repositories\V1\Task\TaskRepositoryInterface;
 use App\Repositories\V1\User\UserRepository;
 use App\Repositories\V1\User\UserRepositoryInterface;
+use App\Repository\AuditLogRepository;
 use App\Services\V1\Auth\AuthService;
 use App\Services\V1\Auth\AuthServiceInterface;
 use App\Services\V1\Company\CompanyService;
@@ -31,6 +33,7 @@ class RepositoryServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Repositories
+        $this->app->bind(AuditLogRepositoryInterface::class, AuditLogRepository::class);
         $this->app->bind(CompanyRepositoryInterface::class, CompanyRepository::class);
         $this->app->bind(ProjectRepositoryInterface::class, ProjectRepository::class);
         $this->app->bind(TaskRepositoryInterface::class, TaskRepository::class);

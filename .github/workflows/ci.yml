@@ -34,7 +34,7 @@ jobs:
           php-version: '${{ env.PHP_VERSION }}'
           coverage: none
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer update --no-interaction --prefer-dist --optimize-autoloader
         working-directory: src/be
       - name: Pint dry run
         run: vendor/bin/pint --test || true
@@ -69,7 +69,7 @@ jobs:
           php-version: '${{ env.PHP_VERSION }}'
           coverage: none
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer update --no-interaction --prefer-dist --optimize-autoloader
         working-directory: src/be
       - name: Generate app key
         run: cp .env.example .env && php artisan key:generate --ansi --force
@@ -129,7 +129,7 @@ jobs:
           php-version: '${{ env.PHP_VERSION }}'
           coverage: none
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer update --no-interaction --prefer-dist --optimize-autoloader
         working-directory: src/be
       - name: Composer audit
         run: composer audit --no-interaction || true

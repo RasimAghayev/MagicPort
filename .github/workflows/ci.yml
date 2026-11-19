@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, preview, test]
+    branches: [main]
   pull_request:
     branches: [preview]
 
@@ -83,6 +83,7 @@ jobs:
     needs: [test]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b163a2ea8f20f133e1705b372e5
@@ -118,6 +119,7 @@ jobs:
     needs: [lint]
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b163a2ea8f20f133e1705b372e5

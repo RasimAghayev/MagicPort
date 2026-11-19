@@ -2,8 +2,11 @@
 
 use App\Http\Controllers\V1\Auth\AuthController;
 use App\Http\Controllers\V1\Company\CompanyController;
+use App\Http\Controllers\V1\Contract\ContractController;
+use App\Http\Controllers\V1\Invoice\InvoiceController;
 use App\Http\Controllers\V1\Project\ProjectController;
 use App\Http\Controllers\V1\Task\TaskController;
+use App\Http\Controllers\V1\Ticket\TicketController;
 use App\Http\Controllers\V1\User\UserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
@@ -81,6 +84,30 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         ->name('users.restore');
     Route::delete('users/{id}/force-delete', [UserController::class, 'forceDelete'])
         ->name('users.force-delete');
+
+    Route::apiResource('invoices', InvoiceController::class)
+        ->only(['index', 'store', 'show', 'update', 'destroy']);
+
+    Route::post('invoices/{code}/restore', [InvoiceController::class, 'restore'])
+        ->name('invoices.restore');
+    Route::delete('invoices/{code}/force-delete', [InvoiceController::class, 'forceDelete'])
+        ->name('invoices.force-delete');
+
+    Route::apiResource('contracts', ContractController::class)
+        ->only(['index', 'store', 'show', 'update', 'destroy']);
+
+    Route::post('contracts/{code}/restore', [ContractController::class, 'restore'])
+        ->name('contracts.restore');
+    Route::delete('contracts/{code}/force-delete', [ContractController::class, 'forceDelete'])
+        ->name('contracts.force-delete');
+
+    Route::apiResource('tickets', TicketController::class)
+        ->only(['index', 'store', 'show', 'update', 'destroy']);
+
+    Route::post('tickets/{code}/restore', [TicketController::class, 'restore'])
+        ->name('tickets.restore');
+    Route::delete('tickets/{code}/force-delete', [TicketController::class, 'forceDelete'])
+        ->name('tickets.force-delete');
 });
 
 // Health endpoints

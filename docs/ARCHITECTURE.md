@@ -22,37 +22,55 @@ MagicPort/
 │   │   │   ├── Controllers/V1/            # Versioned API controllers
 │   │   │   │   ├── Auth/AuthController.php
 │   │   │   │   ├── Company/CompanyController.php
+│   │   │   │   ├── Contract/ContractController.php
+│   │   │   │   ├── Invoice/InvoiceController.php
 │   │   │   │   ├── Project/ProjectController.php
 │   │   │   │   ├── Task/TaskController.php
+│   │   │   │   ├── Ticket/TicketController.php
 │   │   │   │   └── User/UserController.php
 │   │   │   ├── Requests/V1/               # Form request validation
 │   │   │   │   ├── Auth/{Login,Register}Request.php
 │   │   │   │   ├── Company/{Store,Update}CompanyRequest.php
+│   │   │   │   ├── Contract/{Store,Update}ContractRequest.php
+│   │   │   │   ├── Invoice/{Store,Update}InvoiceRequest.php
 │   │   │   │   ├── Project/{Store,Update}ProjectRequest.php
 │   │   │   │   ├── Task/{Store,Update}TaskRequest.php
+│   │   │   │   ├── Ticket/{Store,Update}TicketRequest.php
 │   │   │   │   └── User/{Store,Update}UserRequest.php
 │   │   │   └── Resources/V1/              # API resources
 │   │   │       ├── Auth/TokenResource.php
 │   │   │       ├── Company/{CompanyResource,CompanyCollection}.php
+│   │   │       ├── Contract/{ContractResource,ContractCollection}.php
+│   │   │       ├── Invoice/{InvoiceResource,InvoiceCollection}.php
 │   │   │       ├── Project/{ProjectResource,ProjectCollection}.php
 │   │   │       ├── Task/{TaskResource,TaskCollection}.php
+│   │   │       ├── Ticket/{TicketResource,TicketCollection}.php
 │   │   │       └── User/{UserResource,UserCollection}.php
 │   │   ├── Repositories/V1/               # Data access layer
 │   │   │   ├── RepositoryInterface.php
 │   │   │   ├── Company/{CompanyRepository,CompanyRepositoryInterface}.php
+│   │   │   ├── Contract/{ContractRepository,ContractRepositoryInterface}.php
+│   │   │   ├── Invoice/{InvoiceRepository,InvoiceRepositoryInterface}.php
 │   │   │   ├── Project/{ProjectRepository,ProjectRepositoryInterface}.php
 │   │   │   ├── Task/{TaskRepository,TaskRepositoryInterface}.php
+│   │   │   ├── Ticket/{TicketRepository,TicketRepositoryInterface}.php
 │   │   │   └── User/{UserRepository,UserRepositoryInterface}.php
 │   │   ├── Services/V1/                   # Business logic layer
 │   │   │   ├── Auth/{AuthService,AuthServiceInterface}.php
 │   │   │   ├── Company/{CompanyService,CompanyServiceInterface}.php
+│   │   │   ├── Contract/{ContractService,ContractServiceInterface}.php
+│   │   │   ├── Invoice/{InvoiceService,InvoiceServiceInterface}.php
 │   │   │   ├── Project/{ProjectService,ProjectServiceInterface}.php
 │   │   │   ├── Task/{TaskService,TaskServiceInterface}.php
+│   │   │   ├── Ticket/{TicketService,TicketServiceInterface}.php
 │   │   │   └── User/{UserService,UserServiceInterface}.php
 │   │   ├── Models/
 │   │   │   ├── V1/Company.php      (string PK: code)
+│   │   │   ├── V1/Contract.php     (string PK: code)
+│   │   │   ├── V1/Invoice.php      (string PK: code)
 │   │   │   ├── V1/Project.php      (string PK: code)
 │   │   │   ├── V1/Task.php         (string PK: code)
+│   │   │   ├── V1/Ticket.php       (string PK: code)
 │   │   │   └── User.php            (int PK: id)
 │   │   ├── Providers/RepositoryServiceProvider.php  # DI bindings
 │   │   └── Providers/AppServiceProvider.php
@@ -82,8 +100,11 @@ Layered monolithic API (single deployable unit):
 | Module | Primary Key | Pattern | Auth |
 |--------|------------|---------|------|
 | Company | `code` (string) | Controller → Service → Repository | Sanctum |
+| Contract | `code` (string) | Controller → Service → Repository | Sanctum |
+| Invoice | `code` (string) | Controller → Service → Repository | Sanctum |
 | Project | `code` (string) | Controller → Service → Repository | Sanctum |
 | Task | `code` (string) | Controller → Service → Repository | Sanctum |
+| Ticket | `code` (string) | Controller → Service → Repository | Sanctum |
 | User | `id` (int) | Controller → Service → Repository | Sanctum |
 | Auth | n/a | Controller → Service | Sanctum tokens |
 

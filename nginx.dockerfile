@@ -1,7 +1,7 @@
 FROM nginx:stable-alpine AS base
 
 COPY server/nginx/default.conf /etc/nginx/conf.d/default.conf
-RUN mkdir -p /var/www/html/be /var/www/html/fe
+RUN mkdir -p /var/www/html/be
 
 FROM base AS runtime
 USER nginx

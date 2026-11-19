@@ -1,8 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\V1\Auth\AuthController;
+use App\Http\Controllers\V1\Company\CompanyController;
+use App\Http\Controllers\V1\Project\ProjectController;
+use App\Http\Controllers\V1\Task\TaskController;
+use App\Http\Controllers\V1\User\UserController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use OpenApi\Annotations as OA;
 
 /**
@@ -28,47 +32,61 @@ use OpenApi\Annotations as OA;
  * )
  */
 
-Route::group([
-    'prefix' => 'v1',
-    'namespace' => 'App\Http\Controllers',
-    'middleware' => ['auth:sanctum'],
-], function () {
-    Route::apiResource('companies', CompanyController::class);
-    Route::apiResource('projects', ProjectController::class);
-    Route::apiResource('tasks', TaskController::class);
-    Route::apiResource('users', UserController::class);
+// Public auth routes
+Route::prefix('v1/auth')->group(function () {
+    Route::post('login', [AuthController::class, 'login'])
+        ->name('auth.login');
+    Route::post('register', [AuthController::class, 'register'])
+        ->name('auth.register');
+});
 
-    Route::post('companies/{code}/restore', [CompanyController::class, 'restore']);
-    Route::delete('companies/{code}/force-delete', [CompanyController::class, 'forceDelete']);
-    Route::post('projects/{code}/restore', [ProjectController::class, 'restore']);
-    Route::delete('projects/{code}/force-delete', [ProjectController::class, 'forceDelete']);
-    Route::post('tasks/{code}/restore', [TaskController::class, 'restore']);
-    Route::delete('tasks/{code}/force-delete', [TaskController::class, 'forceDelete']);
-    Route::post('users/{id}/restore', [UserController::class, 'restore']);
-    Route::delete('users/{id}/force-delete', [UserController::class, 'forceDelete']);
+// Protected API routes
+Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
+    Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
+    Route::get('me', [AuthController::class, 'me'])->name('auth.me');
 
-    Route::apiResource('audit-logs', AuditLogController::class)->only(['index', 'show']);
+    Route::apiResource('companies', CompanyController::class)
+        ->only(['index', 'store', 'show', 'update', 'destroy'])
+        ->scopedBy('code');
 
-    Route::prefix('auth')->group(function () {
-        Route::post('login', [AuthController::class, 'login'])->middleware('guest');
-        Route::post('register', [AuthController::class, 'register'])->middleware('guest');
-        Route::post('logout', [AuthController::class, 'logout']);
-        Route::get('me', [AuthController::class, 'me']);
+    Route::post('companies/{code}/restore', [CompanyController::class, 'restore'])
+        ->name('companies.restore');
+    Route::delete('companies/{code}/force-delete', [CompanyController::class, 'forceDelete'])
+        ->name('companies.force-delete');
+
+    Route::apiResource('projects', ProjectController::class)
+        ->only(['index', 'store', 'show', 'update', 'destroy'])
+        ->scopedBy('code');
+
+    Route::post('projects/{code}/restore', [ProjectController::class, 'restore'])
+        ->name('projects.restore');
+    Route::delete('projects/{code}/force-delete', [ProjectController::class, 'forceDelete'])
+        ->name('projects.force-delete');
+
+    Route::apiResource('tasks', TaskController::class)
+        ->only(['index', 'store', 'show', 'update', 'destroy'])
+        ->scopedBy('code');
+
+    Route::post('tasks/{code}/restore', [TaskController::class, 'restore'])
+        ->name('tasks.restore');
+    Route::delete('tasks/{code}/force-delete', [TaskController::class, 'forceDelete'])
+        ->name('tasks.force-delete');
+
+    Route::apiResource('users', UserController::class)
+        ->only(['index', 'store', 'show', 'update', 'destroy']);
+
+    Route::post('users/{id}/restore', [UserController::class, 'restore'])
+        ->name('users.restore');
+    Route::delete('users/{id}/force-delete', [UserController::class, 'forceDelete'])
+        ->name('users.force-delete');
+});
+
+// Health endpoints
+Route::prefix('check')->group(function () {
+    Route::get('/health', function () {
+        return response('', 204);
     });
-});
 
-Route::fallback(function () {
-    if (request()->wantsJson()) {
-        return response()->json([
-            'error' => 'Resource not found.',
-            'message' => 'The resource you are looking for could not be found.'
-        ], 404);
-    }
-
-    return response()->view('errors.404', [], 404);
-});
-
-Route::group(['prefix' => 'check'], function () {
     Route::get('/db', function () {
         try {
             DB::connection()->getPdo();
@@ -77,25 +95,20 @@ Route::group(['prefix' => 'check'], function () {
             return response('Failed to connect to the database', 500);
         }
     });
-    Route::get('/health', function () {
-        return response('', 204);
-    });
+
     Route::get('/static', function () {
+        return response()->json(['status' => true]);
+    });
+});
+
+Route::fallback(function () {
+    if (request()->wantsJson()) {
         return response()->json([
-            'status' => true,
-        ]);
-    });
-    Route::get('/ip', function () {
-        return Http::get('https://ipapi.co/json/')->json();
-    });
-    Route::get('/clear-cache', function() {
-        Artisan::call('optimize:clear');
-        Artisan::call('config:cache');
-        Artisan::call('config:clear');
-        Artisan::call('clear-compiled');
-        Artisan::call('cache:clear');
-        Artisan::call('route:cache');
-        Artisan::call('view:clear');
-        return "Cache is cleared ".date(now());
-    });
+            'success' => false,
+            'message' => 'Resource not found.',
+            'errors' => ['route' => ['The requested route could not be found.']],
+        ], 404);
+    }
+
+    return response()->view('errors.404', [], 404);
 });

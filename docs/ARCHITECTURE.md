@@ -2,98 +2,108 @@
 
 ## Overview
 
-MagicPort is a Laravel 11 API application providing CRUD over a Company/Project/Task/User domain. The backend (`src/be/`) exposes a versioned REST API (`/api/v1/*`) with repository/service abstraction for the Company module and direct Eloquent for simpler CRUD modules (Project, Task, User).
+MagicPort is a Laravel 12 API application providing CRUD over a Company/Project/Task/User domain with Sanctum-based authentication. The backend (`src/be/`) exposes a versioned REST API (`/api/v1/*`) with a clean layered architecture: **Controller → Service → Repository → Model**.
 
 ## Directory structure
 
 ```
 MagicPort/
-├── php.dockerfile              # PHP 8.3-FPM base image with Laravel extensions
+├── php.dockerfile              # PHP 8.5.12-FPM base image with Laravel extensions
 ├── nginx.dockerfile            # nginx with default site config
-├── docker-compose.yml          # Multi-service orchestration
+├── docker-compose.yml          # Multi-service orchestration (php, nginx, mysql, artisan, phpunit, composer)
 ├── Makefile                    # build/test/verify/up/down targets
 ├── .github/workflows/ci.yml    # GitHub Actions CI pipeline
 ├── src/be/                     # Laravel backend application
 │   ├── app/
 │   │   ├── Classes/ApiResponseClass.php   # Standardized JSON responses
-│   │   ├── Enums/                         # DefaultStatus, UserStatus, TaskStatus
-│   │   ├── Filters/ApiFilter.php          # Base query filter
-│   │   ├── Filters/V1/                    # TaskFilters, ProjectFilters
+│   │   ├── Exceptions/Handler.php         # Global exception handler
 │   │   ├── Http/
-│   │   │   ├── Controllers/
-│   │   │   │   ├── V1/
-│   │   │   │   │   ├── CompanyController.php
-│   │   │   │   │   ├── ProjectController.php
-│   │   │   │   │   ├── TaskController.php
-│   │   │   │   │   ├── UserController.php
-│   │   │   │   │   └── Company/                 # Company submodule
-│   │   │   │   │   │       ├── Service/         # CompanyService + interface
-│   │   │   │   │   │       ├── Repository/      # CompanyRepository + interface
-│   │   │   │   │   │       ├── Filter/          # CompanyFilters
-│   │   │   │   │   │       ├── Requests/        # Store/UpdateCompanyRequest
-│   │   │   │   │   │       ├── Resources/       # Company*Resource + Collection
-│   │   │   │   │   │       └── DTO/             # CompanyDTO
-│   │   │   │   │   ├── Project/                 # ProjectController + requests/resources
-│   │   │   │   │   ├── Task/                    # TaskController + requests/resources
-│   │   │   │   └── UserController.php
+│   │   │   ├── Controllers/Controller.php # Base controller with response helpers
+│   │   │   ├── Controllers/V1/            # Versioned API controllers
+│   │   │   │   ├── Auth/AuthController.php
+│   │   │   │   ├── Company/CompanyController.php
+│   │   │   │   ├── Project/ProjectController.php
+│   │   │   │   ├── Task/TaskController.php
+│   │   │   │   └── User/UserController.php
+│   │   │   ├── Requests/V1/               # Form request validation
+│   │   │   │   ├── Auth/{Login,Register}Request.php
+│   │   │   │   ├── Company/{Store,Update}CompanyRequest.php
+│   │   │   │   ├── Project/{Store,Update}ProjectRequest.php
+│   │   │   │   ├── Task/{Store,Update}TaskRequest.php
+│   │   │   │   └── User/{Store,Update}UserRequest.php
+│   │   │   └── Resources/V1/              # API resources
+│   │   │       ├── Auth/TokenResource.php
+│   │   │       ├── Company/{CompanyResource,CompanyCollection}.php
+│   │   │       ├── Project/{ProjectResource,ProjectCollection}.php
+│   │   │       ├── Task/{TaskResource,TaskCollection}.php
+│   │   │       └── User/{UserResource,UserCollection}.php
+│   │   ├── Repositories/V1/               # Data access layer
+│   │   │   ├── RepositoryInterface.php
+│   │   │   ├── Company/{CompanyRepository,CompanyRepositoryInterface}.php
+│   │   │   ├── Project/{ProjectRepository,ProjectRepositoryInterface}.php
+│   │   │   ├── Task/{TaskRepository,TaskRepositoryInterface}.php
+│   │   │   └── User/{UserRepository,UserRepositoryInterface}.php
+│   │   ├── Services/V1/                   # Business logic layer
+│   │   │   ├── Auth/{AuthService,AuthServiceInterface}.php
+│   │   │   ├── Company/{CompanyService,CompanyServiceInterface}.php
+│   │   │   ├── Project/{ProjectService,ProjectServiceInterface}.php
+│   │   │   ├── Task/{TaskService,TaskServiceInterface}.php
+│   │   │   └── User/{UserService,UserServiceInterface}.php
 │   │   ├── Models/
-│   │   │   ├── V1/Company.php
-│   │   │   ├── V1/Project.php
-│   │   │   ├── V1/Task.php
-│   │   │   └── User.php
-│   │   ├── Providers/RepositoryServiceProvider.php
-│   │   └── Middleware/SecurityHeaders.php
-│   ├── routes/api.php               # v1 apiResource routes
-│   ├── database/migrations/         # companies, projects, tasks, company_user
-│   └── tests/                       # Feature + Unit tests
-└── src/fe/                        # Empty — frontend placeholder
+│   │   │   ├── V1/Company.php      (string PK: code)
+│   │   │   ├── V1/Project.php      (string PK: code)
+│   │   │   ├── V1/Task.php         (string PK: code)
+│   │   │   └── User.php            (int PK: id)
+│   │   ├── Providers/RepositoryServiceProvider.php  # DI bindings
+│   │   └── Providers/AppServiceProvider.php
+│   ├── routes/api.php              # v1 API routes
+│   ├── database/migrations/        # companies, projects, tasks, users
+│   ├── database/factories/         # Model factories
+│   └── tests/                      # Feature + Unit tests
+│       ├── Feature/{Auth,Company,Project,Task,User}/
+│       └── Unit/Services/
+└── src/fe/                         # Frontend placeholder
 ```
 
 ## Architecture pattern
 
 Layered monolithic API (single deployable unit):
 
-- **Routes** → `routes/api.php` → `Route::apiResource('v1', ...)` for companies, projects, tasks, users
-- **HTTP layer** — Controllers handle request/response, validation via FormRequest classes
-- **Service layer** (Company only) — `CompanyService` orchestrates business logic via `CompanyDTO`
-- **Repository layer** (Company only) — `CompanyRepository` wraps Eloquent `Company` model via `CompanyRepositoryInterface`
+- **Routes** → `routes/api.php` → Controllers (scoped by `code` for company/project/task)
+- **HTTP layer** — Controllers delegate to Services, return standardized JSON via `ApiResponseClass`
+- **Service layer** — All modules use `ServiceInterface` + implementation; business logic + transactions
+- **Repository layer** — All modules use `RepositoryInterface` + implementation; Eloquent data access
 - **Data access** — Eloquent ORM with `Company`, `Project`, `Task`, `User` models
 - **Response** — `ApiResponseClass` standardizes success/error JSON responses
+- **Validation** — FormRequest classes for every write operation
 
 ## Module patterns
 
-| Module | Pattern | Rationale |
-|--------|---------|-----------|
-| Company | Repository + Service + DTO | Core domain with relationships; ADR-0001/0002 |
-| Project | Direct Eloquent + FormRequest | Simple CRUD; ADR-0003 (KISS/YAGNI) |
-| Task | Direct Eloquent + FormRequest | Simple CRUD; ADR-0003 |
-| User | Direct Eloquent + route model binding | Simple CRUD; ADR-0003/0004 |
+| Module | Primary Key | Pattern | Auth |
+|--------|------------|---------|------|
+| Company | `code` (string) | Controller → Service → Repository | Sanctum |
+| Project | `code` (string) | Controller → Service → Repository | Sanctum |
+| Task | `code` (string) | Controller → Service → Repository | Sanctum |
+| User | `id` (int) | Controller → Service → Repository | Sanctum |
+| Auth | n/a | Controller → Service | Sanctum tokens |
+
+All modules support: index, store, show, update, destroy (soft delete), restore, force-delete.
 
 ## Boundaries
 
-No module boundaries or bounded contexts. Single deployable unit (Laravel app + MySQL + nginx). Not a modular monolith — no real domain complexity to justify it yet.
+Single deployable unit (Laravel app + MySQL + nginx). All modules share the same codebase and database. Consistent layered pattern across all modules — no mixed architectures.
 
 ## External dependencies
 
-- MySQL (database)
-- Packagist (Composer packages — Laravel 11, PHPUnit 11, Pint, PHPStan)
+- MySQL 8.4 (database)
+- Packagist (Composer packages — Laravel 12, PHPUnit 12, Pint, Sanctum)
 - nginx (web server)
-
-## Diagrams
-
-None yet — flows documented via ADRs in `docs/adr/`. Will be expanded in Phase 15.
 
 ## Standards applied
 
 - PSR-4 autoloading (`App\` → `app/`)
 - Laravel conventions (directory layout, config naming, migration naming)
 - Conventional Commits (`feat:`, `fix:`, `refactor:`)
-- Route model binding for `{project}`, `{task}`, `{user}` (ADR-0004)
-
-## Decisions
-
-See `docs/adr/`:
-- ADR-0001 — Repository/Service pattern for Company module
-- ADR-0002 — DTO pattern for company data transfer
-- ADR-0003 — Direct Eloquent for Project/Task/User controllers
-- ADR-0004 — Route model binding for User/Task/Project controllers
+- Route model binding via `scopedBy('code')` for company/project/task
+- String primary keys for company/project/task (`code` field)
+- Soft deletes on all domain tables

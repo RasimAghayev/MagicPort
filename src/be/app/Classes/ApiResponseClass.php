@@ -2,52 +2,49 @@
 
 namespace App\Classes;
 
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Http\{JsonResponse,Response};
-use Illuminate\Support\Facades\{DB,Log};
+use Illuminate\Http\JsonResponse;
 
 class ApiResponseClass
 {
-    /**
-     * @param $e
-     * @param $message
-     * @return JsonResponse|Response
-     */
-    public static function rollback($e,
-                                    $message = 'Something went wrong! Process not completed',
-                                    $request = null): void
+    public static function sendResponse($result, string $message, int $code = 200): JsonResponse
     {
-        DB::rollBack();
-        self::throw($e, $message);
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => $result,
+        ], $code);
     }
 
-    /**
-     * @param $e
-     * @param $message
-     * @return void
-     */
-    public static function throw($e, $message = 'Something went wrong! Process not completed'): void
-    {
-        Log::info($e);
-        throw new HttpResponseException(response()->json(['message' => $message], 500));
-    }
-
-    /**
-     * @param $result
-     * @param $message
-     * @param $code
-     * @return JsonResponse
-     */
-    public static function sendResponse($result, $message, $code = 200): JsonResponse
+    public static function sendError(string $message, int $code = 400, array $errors = []): JsonResponse
     {
         $response = [
-            'data' => $result,
-            'success' => true,
+            'success' => false,
+            'message' => $message,
         ];
-        if (!empty($message)) {
-            $response['message'] = $message;
+
+        if (!empty($errors)) {
+            $response['errors'] = $errors;
         }
 
         return response()->json($response, $code);
+    }
+
+    public static function sendCreated($result, string $message = 'Created successfully.'): JsonResponse
+    {
+        return self::sendResponse($result, $message, 201);
+    }
+
+    public static function sendDeleted(string $message = 'Deleted successfully.'): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => null,
+        ], 204);
+    }
+
+    public static function sendValidationError(array $errors): JsonResponse
+    {
+        return self::sendError('Validation failed.', 422, $errors);
     }
 }

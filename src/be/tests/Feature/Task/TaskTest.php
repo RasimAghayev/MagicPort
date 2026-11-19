@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\Task;
 
-use App\Models\Company;
-use App\Models\Project;
-use App\Models\Task;
+use App\Models\V1\Company;
+use App\Models\V1\Project;
+use App\Models\V1\Task;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,106 +13,178 @@ class TaskTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function authHeaders(User $user): array
-    {
-        return ['Authorization' => 'Bearer ' . $user->createToken('test')->plainTextToken];
-    }
-
     public function test_user_can_list_tasks(): void
     {
         $user = User::factory()->create();
-        Company::factory()->create(['code' => 'C001']);
-        Project::factory()->create(['code' => 'P001', 'company_code' => 'C001']);
-        Task::factory()->count(3)->create(['company_code' => 'C001', 'project_code' => 'P001']);
+        $company = Company::factory()->create(['user_id' => $user->id]);
+        $project = Project::factory()->create([
+            'company_code' => $company->code,
+            'user_id'      => $user->id,
+        ]);
+        Task::factory()->count(3)->create([
+            'project_code' => $project->code,
+            'user_id'      => $user->id,
+        ]);
 
-        $response = $this->withHeaders($this->authHeaders($user))
+        $response = $this->actingAs($user, 'sanctum')
             ->getJson('/api/v1/tasks');
 
         $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'data',
+            'meta' => ['current_page', 'per_page', 'total', 'last_page'],
+        ]);
         $response->assertJsonCount(3, 'data');
     }
 
     public function test_user_can_create_task(): void
     {
         $user = User::factory()->create();
-        Company::factory()->create(['code' => 'C001']);
-        Project::factory()->create(['code' => 'P001', 'company_code' => 'C001']);
+        $company = Company::factory()->create(['user_id' => $user->id]);
+        $project = Project::factory()->create([
+            'company_code' => $company->code,
+            'user_id'      => $user->id,
+        ]);
 
-        $response = $this->withHeaders($this->authHeaders($user))
+        $response = $this->actingAs($user, 'sanctum')
             ->postJson('/api/v1/tasks', [
-                'code' => 'T001',
-                'name' => 'Test Task',
-                'company_code' => 'C001',
-                'project_code' => 'P001',
-                'priority' => 3,
-                'is_active' => true,
+                'project_code' => $project->code,
+                'user_id'      => $user->id,
+                'title'        => 'Test Task',
+                'code'         => 'TK001',
+                'status'       => 'todo',
             ]);
 
         $response->assertStatus(201);
-        $this->assertDatabaseHas('tasks', ['code' => 'T001']);
+        $response->assertJson([
+            'data' => [
+                'title' => 'Test Task',
+                'code'  => 'TK001',
+                'status'=> 'todo',
+            ],
+        ]);
+
+        $this->assertDatabaseHas('tasks', ['code' => 'TK001']);
     }
 
     public function test_user_can_show_task(): void
     {
         $user = User::factory()->create();
-        $task = Task::factory()->create(['code' => 'T001', 'company_code' => 'C001', 'project_code' => 'P001']);
+        $company = Company::factory()->create(['user_id' => $user->id]);
+        $project = Project::factory()->create([
+            'company_code' => $company->code,
+            'user_id'      => $user->id,
+        ]);
+        $task = Task::factory()->create([
+            'project_code' => $project->code,
+            'user_id'      => $user->id,
+            'code'         => 'TK001',
+            'title'        => 'Test Task',
+        ]);
 
-        $response = $this->withHeaders($this->authHeaders($user))
-            ->getJson('/api/v1/tasks/T001');
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/tasks/TK001');
 
         $response->assertStatus(200);
-        $response->assertJson(['data' => ['code' => 'T001']]);
+        $response->assertJson([
+            'data' => [
+                'code'  => 'TK001',
+                'title' => 'Test Task',
+            ],
+        ]);
     }
 
     public function test_user_can_update_task(): void
     {
         $user = User::factory()->create();
-        $task = Task::factory()->create(['code' => 'T001', 'company_code' => 'C001', 'project_code' => 'P001']);
+        $company = Company::factory()->create(['user_id' => $user->id]);
+        $project = Project::factory()->create([
+            'company_code' => $company->code,
+            'user_id'      => $user->id,
+        ]);
+        $task = Task::factory()->create([
+            'project_code' => $project->code,
+            'user_id'      => $user->id,
+            'code'         => 'TK001',
+        ]);
 
-        $response = $this->withHeaders($this->authHeaders($user))
-            ->putJson('/api/v1/tasks/T001', [
-                'name' => 'Updated Task',
+        $response = $this->actingAs($user, 'sanctum')
+            ->putJson('/api/v1/tasks/TK001', [
+                'title' => 'Updated Task',
+                'status'=> 'done',
             ]);
 
         $response->assertStatus(200);
-        $this->assertDatabaseHas('tasks', ['code' => 'T001', 'name' => 'Updated Task']);
+        $response->assertJson([
+            'data' => [
+                'title' => 'Updated Task',
+                'status'=> 'done',
+            ],
+        ]);
     }
 
     public function test_user_can_delete_task(): void
     {
         $user = User::factory()->create();
-        $task = Task::factory()->create(['code' => 'T001', 'company_code' => 'C001', 'project_code' => 'P001']);
+        $company = Company::factory()->create(['user_id' => $user->id]);
+        $project = Project::factory()->create([
+            'company_code' => $company->code,
+            'user_id'      => $user->id,
+        ]);
+        $task = Task::factory()->create([
+            'project_code' => $project->code,
+            'user_id'      => $user->id,
+            'code'         => 'TK001',
+        ]);
 
-        $response = $this->withHeaders($this->authHeaders($user))
-            ->deleteJson('/api/v1/tasks/T001');
+        $response = $this->actingAs($user, 'sanctum')
+            ->deleteJson('/api/v1/tasks/TK001');
 
         $response->assertStatus(204);
-        $this->assertSoftDeleted('tasks', ['code' => 'T001']);
+        $this->assertSoftDeleted('tasks', ['code' => 'TK001']);
     }
 
     public function test_user_can_restore_task(): void
     {
         $user = User::factory()->create();
-        $task = Task::factory()->create(['code' => 'T001', 'company_code' => 'C001', 'project_code' => 'P001']);
+        $company = Company::factory()->create(['user_id' => $user->id]);
+        $project = Project::factory()->create([
+            'company_code' => $company->code,
+            'user_id'      => $user->id,
+        ]);
+        $task = Task::factory()->create([
+            'project_code' => $project->code,
+            'user_id'      => $user->id,
+            'code'         => 'TK001',
+        ]);
         $task->delete();
 
-        $response = $this->withHeaders($this->authHeaders($user))
-            ->postJson('/api/v1/tasks/T001/restore');
+        $response = $this->actingAs($user, 'sanctum')
+            ->postJson('/api/v1/tasks/TK001/restore');
 
         $response->assertStatus(200);
-        $this->assertDatabaseHas('tasks', ['code' => 'T001']);
+        $this->assertDatabaseHas('tasks', ['code' => 'TK001']);
     }
 
     public function test_user_can_force_delete_task(): void
     {
         $user = User::factory()->create();
-        $task = Task::factory()->create(['code' => 'T001', 'company_code' => 'C001', 'project_code' => 'P001']);
+        $company = Company::factory()->create(['user_id' => $user->id]);
+        $project = Project::factory()->create([
+            'company_code' => $company->code,
+            'user_id'      => $user->id,
+        ]);
+        $task = Task::factory()->create([
+            'project_code' => $project->code,
+            'user_id'      => $user->id,
+            'code'         => 'TK001',
+        ]);
         $task->delete();
 
-        $response = $this->withHeaders($this->authHeaders($user))
-            ->deleteJson('/api/v1/tasks/T001/force-delete');
+        $response = $this->actingAs($user, 'sanctum')
+            ->deleteJson('/api/v1/tasks/TK001/force-delete');
 
         $response->assertStatus(204);
-        $this->assertDatabaseMissing('tasks', ['code' => 'T001']);
+        $this->assertDatabaseMissing('tasks', ['code' => 'TK001']);
     }
 }

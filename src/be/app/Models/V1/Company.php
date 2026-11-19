@@ -2,50 +2,43 @@
 
 namespace App\Models\V1;
 
-use App\Enums\DefaultStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * @method findOrFail(int $id)
- * @method where(array string $string, $userId)
- * @method create(array $companyData)
- */
 class Company extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $table = 'companies';
+    protected $primaryKey = 'code';
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $casts = [
-        'status' => DefaultStatus::class,
-    ];
-    protected $guarded = [];
-    protected $fillable = [
-        "user_id",
-        "name",
-        "status",
+        'status' => 'string',
     ];
 
-    /**
-     * @return BelongsToMany
-     */
-    public function users(): BelongsToMany
+    protected $fillable = [
+        'code',
+        'name',
+        'user_id',
+        'status',
+    ];
+
+    public function user()
     {
-        return $this->belongsToMany(User::class)
-            ->withPivot('status')
-            ->withTimestamps();
+        return $this->belongsTo(User::class);
     }
 
     public function projects()
     {
-        return $this->hasMany(Project::class);
+        return $this->hasMany(Project::class, 'company_code', 'code');
     }
 
     public function tasks()
     {
-        return $this->hasMany(Task::class);
+        return $this->hasMany(Task::class, 'company_code', 'code');
     }
 }

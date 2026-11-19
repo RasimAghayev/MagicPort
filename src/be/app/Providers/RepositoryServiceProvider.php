@@ -2,71 +2,50 @@
 
 namespace App\Providers;
 
-use App\Interfaces\AuditLogRepositoryInterface;
-use App\Interfaces\CompanyRepositoryInterface;
-use App\Interfaces\ProjectRepositoryInterface;
-use App\Interfaces\TaskRepositoryInterface;
-use App\Interfaces\UserRepositoryInterface;
-use App\Policies\AuditLogPolicy;
-use App\Policies\CompanyPolicy;
-use App\Policies\ProjectPolicy;
-use App\Policies\TaskPolicy;
-use App\Policies\UserPolicy;
-use App\Repository\AuditLogRepository;
-use App\Repository\CompanyRepository;
-use App\Repository\ProjectRepository;
-use App\Repository\TaskRepository;
-use App\Repository\UserRepository;
+use App\Http\Resources\V1\Company\CompanyResource;
+use App\Http\Resources\V1\Project\ProjectResource;
+use App\Http\Resources\V1\Task\TaskResource;
+use App\Http\Resources\V1\User\UserResource;
+use App\Repositories\V1\Company\CompanyRepository;
+use App\Repositories\V1\Company\CompanyRepositoryInterface;
+use App\Repositories\V1\Project\ProjectRepository;
+use App\Repositories\V1\Project\ProjectRepositoryInterface;
+use App\Repositories\V1\Task\TaskRepository;
+use App\Repositories\V1\Task\TaskRepositoryInterface;
+use App\Repositories\V1\User\UserRepository;
+use App\Repositories\V1\User\UserRepositoryInterface;
+use App\Services\V1\Auth\AuthService;
+use App\Services\V1\Auth\AuthServiceInterface;
+use App\Services\V1\Company\CompanyService;
+use App\Services\V1\Company\CompanyServiceInterface;
+use App\Services\V1\Project\ProjectService;
+use App\Services\V1\Project\ProjectServiceInterface;
+use App\Services\V1\Task\TaskService;
+use App\Services\V1\Task\TaskServiceInterface;
+use App\Services\V1\User\UserService;
+use App\Services\V1\User\UserServiceInterface;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Repositories
         $this->app->bind(CompanyRepositoryInterface::class, CompanyRepository::class);
         $this->app->bind(ProjectRepositoryInterface::class, ProjectRepository::class);
         $this->app->bind(TaskRepositoryInterface::class, TaskRepository::class);
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
-        $this->app->bind(AuditLogRepositoryInterface::class, AuditLogRepository::class);
+
+        // Services
+        $this->app->bind(CompanyServiceInterface::class, CompanyService::class);
+        $this->app->bind(ProjectServiceInterface::class, ProjectService::class);
+        $this->app->bind(TaskServiceInterface::class, TaskService::class);
+        $this->app->bind(UserServiceInterface::class, UserService::class);
+        $this->app->bind(AuthServiceInterface::class, AuthService::class);
     }
 
     public function boot(): void
     {
-        $gate = $this->app->make(\Illuminate\Contracts\Auth\Access\Gate::class);
-
-        $gate->define('view-company', [CompanyPolicy::class, 'view']);
-        $gate->define('view-any-company', [CompanyPolicy::class, 'viewAny']);
-        $gate->define('create-company', [CompanyPolicy::class, 'create']);
-        $gate->define('update-company', [CompanyPolicy::class, 'update']);
-        $gate->define('delete-company', [CompanyPolicy::class, 'delete']);
-        $gate->define('restore-company', [CompanyPolicy::class, 'restore']);
-        $gate->define('force-delete-company', [CompanyPolicy::class, 'forceDelete']);
-
-        $gate->define('view-project', [ProjectPolicy::class, 'view']);
-        $gate->define('view-any-project', [ProjectPolicy::class, 'viewAny']);
-        $gate->define('create-project', [ProjectPolicy::class, 'create']);
-        $gate->define('update-project', [ProjectPolicy::class, 'update']);
-        $gate->define('delete-project', [ProjectPolicy::class, 'delete']);
-        $gate->define('restore-project', [ProjectPolicy::class, 'restore']);
-        $gate->define('force-delete-project', [ProjectPolicy::class, 'forceDelete']);
-
-        $gate->define('view-task', [TaskPolicy::class, 'view']);
-        $gate->define('view-any-task', [TaskPolicy::class, 'viewAny']);
-        $gate->define('create-task', [TaskPolicy::class, 'create']);
-        $gate->define('update-task', [TaskPolicy::class, 'update']);
-        $gate->define('delete-task', [TaskPolicy::class, 'delete']);
-        $gate->define('restore-task', [TaskPolicy::class, 'restore']);
-        $gate->define('force-delete-task', [TaskPolicy::class, 'forceDelete']);
-
-        $gate->define('view-user', [UserPolicy::class, 'view']);
-        $gate->define('view-any-user', [UserPolicy::class, 'viewAny']);
-        $gate->define('create-user', [UserPolicy::class, 'create']);
-        $gate->define('update-user', [UserPolicy::class, 'update']);
-        $gate->define('delete-user', [UserPolicy::class, 'delete']);
-        $gate->define('restore-user', [UserPolicy::class, 'restore']);
-        $gate->define('force-delete-user', [UserPolicy::class, 'forceDelete']);
-
-        $gate->define('view-audit-log', [AuditLogPolicy::class, 'view']);
-        $gate->define('view-any-audit-log', [AuditLogPolicy::class, 'viewAny']);
+        //
     }
 }

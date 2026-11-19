@@ -2,7 +2,6 @@
 
 namespace App\Models\V1;
 
-use App\Enums\V1\TaskStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,31 +12,33 @@ class Task extends Model
     use HasFactory, SoftDeletes;
 
     protected $table = 'tasks';
+    protected $primaryKey = 'code';
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $casts = [
-        'status' => TaskStatus::class,
-    ];
-    protected $guarded = [];
-    protected $fillable = [
-        "company_id",
-        "user_id",
-        "project_id",
-        "name",
-        "description",
-        "status",
+        'status' => 'string',
+        'due_date' => 'date',
     ];
 
-    public function company()
+    protected $fillable = [
+        'code',
+        'title',
+        'description',
+        'project_code',
+        'user_id',
+        'status',
+        'due_date',
+        'priority',
+    ];
+
+    public function project()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(Project::class, 'project_code', 'code');
     }
 
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function project()
-    {
-        return $this->belongsTo(Project::class);
     }
 }

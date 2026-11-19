@@ -2,33 +2,25 @@
 
 namespace Database\Factories\V1;
 
-use App\Enums\DefaultStatus;
 use App\Models\User;
 use App\Models\V1\Company;
 use App\Models\V1\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\V1\Project>
- */
 class ProjectFactory extends Factory
 {
     protected $model = Project::class;
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-    public function definition()
+
+    public function definition(): array
     {
-        $userIds = User::all()->pluck('id')->toArray();
-        $companyIds = Company::all()->pluck('id')->toArray();
         return [
-            'company_id' => $this->faker->randomElement($companyIds),
-            'user_id' => $this->faker->randomElement($userIds),
-            'name' => $this->faker->word,
-            'description' => $this->faker->text,
-            'status' => $this->faker->randomElement(DefaultStatus::cases())->value,
+            'code'         => 'P' . strtoupper(Str::random(6)),
+            'name'         => $this->faker->company . ' Project',
+            'description'  => $this->faker->sentence,
+            'company_code' => Company::factory(),
+            'user_id'      => User::factory(),
+            'status'       => $this->faker->randomElement(['active', 'inactive', 'completed']),
         ];
     }
 }

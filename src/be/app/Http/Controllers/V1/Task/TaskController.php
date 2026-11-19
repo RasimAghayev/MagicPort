@@ -2,97 +2,94 @@
 
 namespace App\Http\Controllers\V1\Task;
 
-use App\Classes\ApiResponseClass;
-use App\Filters\V1\TaskFilters;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\V1\Task\Requests\{StoreTaskRequest, UpdateTaskRequest};
-use App\Http\Controllers\V1\Task\Resources\{TaskCollection, TaskResource};
-use App\Models\V1\Task;
-use Exception;
-use Illuminate\Http\{JsonResponse, Request, Response};
-use Illuminate\Support\Facades\DB;
+use App\Http\Requests\V1\Task\StoreTaskRequest;
+use App\Http\Requests\V1\Task\UpdateTaskRequest;
+use App\Http\Resources\V1\Task\TaskCollection;
+use App\Http\Resources\V1\Task\TaskResource;
+use App\Services\V1\Task\TaskServiceInterface;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    /**
-     * @param StoreTaskRequest $request
-     * @return TaskResource
-     */
-    public function store(StoreTaskRequest $request): TaskResource
-    {
-        $task = Task::create($request->all());
-        return new TaskResource($task);
-    }
+    public function __construct(
+        protected TaskServiceInterface $service
+    ) {}
 
-    /**
-     * @param Request $request
-     * @return TaskCollection
-     */
     public function index(Request $request): TaskCollection
     {
-        $filter = new TaskFilters();
-        $queryItems = $filter->transform($request);
-        $tasks = Task::when($request->has('projects'), function ($query) {
-            $query->with('project');
-        })
-            ->where($queryItems);
-        $perPage = $request->query('perPage', 10);
-        $maxPerPage = 100;
-        $perPage = min($perPage, $maxPerPage);
-        $paginatedTasks = $tasks->orderBy('id', 'desc')
-            ->paginate($perPage)
-            ->appends($request->query());
-        return new TaskCollection($paginatedTasks);
+        $filters = $request->only(['status', 'project_id', 'user_id', 'search']);
+        $perPage = (int) $request->query('perPage', 15);
+
+        return $this->respond(
+            new TaskCollection($this->service->all($filters, $perPage)),
+            'Tasks retrieved successfully.'
+        );
     }
 
-    /**
-     * @param UpdateTaskRequest $request
-     * @param Task $task
-     * @return Response
-     */
-    public function update(UpdateTaskRequest $request,
-                           Task              $task)
+    public function store(StoreTaskRequest $request): TaskResource
     {
-        DB::beginTransaction();
-        try {
-            $task->update($request->all());
-            DB::commit();
+        $task = $this->service->create($request->validated());
 
-            return ApiResponseClass::sendResponse(
-                new TaskResource($task),
-                'Task updated successfully.',
-                201
-            );
-        } catch (Exception $ex) {
-            return ApiResponseClass::rollback($ex,
-                'An error occurred while updating the task.',
-                $request);
+        return $this->respondCreated(
+            new TaskResource($task),
+            'Task created successfully.'
+        );
+    }
+
+    public function show(string $code): TaskResource
+    {
+        $task = $this->service->findByCode($code);
+        if (!$task) {
+            return $this->respondError('Task not found.', 404);
         }
-    }
 
-    /**
-     * @param Task $task
-     * @return JsonResponse
-     */
-    public function show(Task $task): JsonResponse
-    {
-        return ApiResponseClass::sendResponse(
-            new TaskResource(
-                resource: Task::findOrFail($task->id)
-            ),
-            'Task retrieved successfully.',
-            200
+        return $this->respond(
+            new TaskResource($task),
+            'Task retrieved successfully.'
         );
     }
 
-    public function destroy(Task $task)
+    public function update(UpdateTaskRequest $request, string $code): TaskResource
     {
-        $task->delete();
+        $task = $this->service->update($code, $request->validated());
 
-        return ApiResponseClass::sendResponse(
-            'Task Delete Successful.',
-            '',
-            204
+        return $this->respond(
+            new TaskResource($task),
+            'Task updated successfully.'
         );
+    }
+
+    public function destroy(string $code)
+    {
+        $deleted = $this->service->delete($code);
+        if (!$deleted) {
+            return $this->respondError('Task not found.', 404);
+        }
+
+        return $this->respondDeleted('Task deleted successfully.');
+    }
+
+    public function restore(string $code): TaskResource
+    {
+        $task = $this->service->restore($code);
+        if (!$task) {
+            return $this->respondError('Task not found.', 404);
+        }
+
+        return $this->respond(
+            new TaskResource($task),
+            'Task restored successfully.'
+        );
+    }
+
+    public function forceDelete(string $code)
+    {
+        $deleted = $this->service->forceDelete($code);
+        if (!$deleted) {
+            return $this->respondError('Task not found.', 404);
+        }
+
+        return $this->respondDeleted('Task permanently deleted.');
     }
 }

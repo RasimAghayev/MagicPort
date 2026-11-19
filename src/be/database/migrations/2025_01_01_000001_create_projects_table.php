@@ -13,14 +13,16 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->foreignId('company_code')->constrained('companies', 'code');
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->enum('status', ['active', 'inactive', 'completed'])->default('active');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
-            $table->decimal('budget', 15, 2)->nullable();
-            $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
 
             $table->index('company_code');
+            $table->index('user_id');
+            $table->index('status');
         });
     }
 

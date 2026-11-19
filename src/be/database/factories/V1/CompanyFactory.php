@@ -2,28 +2,22 @@
 
 namespace Database\Factories\V1;
 
-use App\Enums\DefaultStatus;
 use App\Models\User;
 use App\Models\V1\Company;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\V1\Company>
- */
 class CompanyFactory extends Factory
 {
     protected $model = Company::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company,
-            'status' => $this->faker->randomElement(DefaultStatus::cases())->value,
+            'code'   => 'C' . strtoupper(Str::random(6)),
+            'name'   => $this->faker->company,
+            'user_id'=> User::factory(),
+            'status' => $this->faker->randomElement(['active', 'inactive', 'suspended']),
         ];
     }
 }

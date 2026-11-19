@@ -1,107 +1,95 @@
 <?php
-declare(strict_types=1);
 
 namespace App\Http\Controllers\V1\Company;
 
-
-
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\V1\Company\Resources\CompanyCollection;
-use App\Http\Controllers\V1\Company\Service\CompanyServiceInterface;
+use App\Http\Requests\V1\Company\StoreCompanyRequest;
+use App\Http\Requests\V1\Company\UpdateCompanyRequest;
+use App\Http\Resources\V1\Company\CompanyCollection;
+use App\Http\Resources\V1\Company\CompanyResource;
+use App\Services\V1\Company\CompanyServiceInterface;
 use Illuminate\Http\Request;
 
 class CompanyController extends Controller
 {
-    /**
-     * @param CompanyServiceInterface $companyRepository
-     */
     public function __construct(
-        protected CompanyServiceInterface $companyRepository
-    ){}
+        protected CompanyServiceInterface $service
+    ) {}
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return CompanyCollection
-     */
     public function index(Request $request): CompanyCollection
     {
-        $companyService = app(CompanyServiceInterface::class);
-        $includeTasks = (bool) $request->query('tasks');
-        $perPage = (int) $request->query('perPage', '10');
+        $filters = $request->only(['status', 'search', 'with_tasks']);
+        $perPage = (int) $request->query('perPage', 15);
 
-        return $companyService->getCompanies($request,
-            $includeTasks,
-            $perPage);
+        return $this->respond(
+            new CompanyCollection($this->service->all($filters, $perPage)),
+            'Companies retrieved successfully.'
+        );
     }
-//
-//    /**
-//     * Store a newly created resource in storage.
-//     *
-//     * @param \App\Http\Requests\API\V1\StoreCustomerRequest $request
-//     * @return Response
-//     */
-//    public function store(StoreCustomerRequest $request)
-//    {
-//        return new CustomerResource($request->createData());
-//    }
-//
-//    /**
-//     * Display the specified resource.
-//     *
-//     * @param \App\Models\API\V1\Customer $customer
-//     * @return Response
-//     */
-//    public function show($id)
-//    {
-//        $customer = Customer::findOrFail($id);
-//        if ($customer) {
-//            $includeOrder = request()->query('includeCustomerOrders');
-//            if ($includeOrder) {
-//                $customer = $customer->loadMissing('customerorders');
-//            }
-//            return response()->json(data: [
-//                'status' => true,
-//                'message' => "Customer showed",
-//                'data' => new CustomerResource($customer)
-//            ]);
-//        } else {
-//            return response()->json([
-//                'message' => "Customer ID not found",
-//                'status' => false
-//            ]);
-//        }
-//    }
-//
-//    /**
-//     * Update the specified resource in storage.
-//     *
-//     * @param \App\Http\Requests\API\V1\UpdateCustomerRequest $request
-//     * @param \App\Models\API\V1\Customer $customer
-//     * @return Response
-//     */
-//    public function update(UpdateCustomerRequest $request, Customer $customer)
-//    {
-//        $customer->update($request->all());
-//        return response()->json([
-//            'message' => "Customer Saved",
-//            'status' => true
-//        ]);
-//    }
-//
-//    /**
-//     * Remove the specified resource from storage.
-//     *
-//     * @param \App\Models\V1\Customer $customer
-//     * @return Response
-//     */
-//    public function destroy(Customer $customer)
-//    {
-//        return response()->json([
-//            'id' => $customer->id,
-//            'status' => $customer->delete(),
-//            'message' => 'Success'
-//        ]);
-//    }
 
+    public function store(StoreCompanyRequest $request): CompanyResource
+    {
+        $company = $this->service->create($request->validated());
+
+        return $this->respondCreated(
+            new CompanyResource($company),
+            'Company created successfully.'
+        );
+    }
+
+    public function show(string $code): CompanyResource
+    {
+        $company = $this->service->findByCode($code);
+        if (!$company) {
+            return $this->respondError('Company not found.', 404);
+        }
+
+        return $this->respond(
+            new CompanyResource($company),
+            'Company retrieved successfully.'
+        );
+    }
+
+    public function update(UpdateCompanyRequest $request, string $code): CompanyResource
+    {
+        $company = $this->service->update($code, $request->validated());
+
+        return $this->respond(
+            new CompanyResource($company),
+            'Company updated successfully.'
+        );
+    }
+
+    public function destroy(string $code)
+    {
+        $deleted = $this->service->delete($code);
+        if (!$deleted) {
+            return $this->respondError('Company not found.', 404);
+        }
+
+        return $this->respondDeleted('Company deleted successfully.');
+    }
+
+    public function restore(string $code): CompanyResource
+    {
+        $company = $this->service->restore($code);
+        if (!$company) {
+            return $this->respondError('Company not found.', 404);
+        }
+
+        return $this->respond(
+            new CompanyResource($company),
+            'Company restored successfully.'
+        );
+    }
+
+    public function forceDelete(string $code)
+    {
+        $deleted = $this->service->forceDelete($code);
+        if (!$deleted) {
+            return $this->respondError('Company not found.', 404);
+        }
+
+        return $this->respondDeleted('Company permanently deleted.');
+    }
 }

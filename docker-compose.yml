@@ -80,7 +80,6 @@ services:
     volumes:
       - ./src/be:/var/www/html/be
     working_dir: /var/www/html/be
-    entrypoint: ["/var/www/html/be/vendor/bin/phpunit"]
     environment:
       - APP_ENV=${APP_ENV:-testing}
       - DB_CONNECTION=${DB_CONNECTION:-mysql}
@@ -93,7 +92,7 @@ services:
       - magicport
 
   mysql:
-    image: ${MYSQL_IMAGE:-mysql:26.7.0}
+    image: ${MYSQL_IMAGE:-mysql:8.4}
     container_name: ${MYSQL_CONTAINER_NAME:-mysql}
     ports:
       - "${MYSQL_HOST_PORT:-4306}:3306"
@@ -103,8 +102,8 @@ services:
       - magicport
     environment:
       - MYSQL_DATABASE=${MYSQL_DATABASE:-project_development}
-      - MYSQL_USER=${MYSQL_USER:-magicport}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-change-me-in-production}
+      - MYSQL_USER=${DB_USERNAME:-magicport}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-change-me-in-production}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-change-me-in-production}
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]

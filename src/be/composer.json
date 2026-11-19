@@ -5,7 +5,7 @@
     "keywords": ["laravel", "api", "sanctum", "swagger", "rbac"],
     "license": "MIT",
     "require": {
-        "php": "^8.4",
+        "php": "^8.4.27",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.1",
         "darkaonline/l5-swagger": "^8.8",

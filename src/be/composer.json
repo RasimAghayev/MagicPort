@@ -10,7 +10,7 @@
         "laravel/sanctum": "^4.1",
         "darkaonline/l5-swagger": "^8.6",
         "spatie/laravel-permission": "^7.1",
-        "laravel/tinker": "^2.11"
+        "laravel/tinker": "^3.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",

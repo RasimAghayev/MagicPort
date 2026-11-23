@@ -8,7 +8,7 @@
         "php": "^8.5.12",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.1",
-        "darkaonline/l5-swagger": "^8.6",
+        "darkaonline/l5-swagger": "^11.4",
         "spatie/laravel-permission": "^7.1",
         "laravel/tinker": "^2.11"
     },
